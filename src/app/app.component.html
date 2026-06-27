@@ -1,0 +1,338 @@
+<header class="app-header">
+  <div class="header-container">
+    <div class="logo">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="32" height="32" rx="8" fill="url(#logoGrad)" />
+        <path d="M9 16L13.5 20.5L23 11.5" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <defs>
+          <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#8B5CF6" />
+            <stop offset="1" stop-color="#06B6D4" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <span class="logo-text">AI<span>Tutor</span></span>
+    </div>
+    
+    <nav class="nav-links">
+      <a href="#demo" class="active">Interactive Demo</a>
+      <a href="#planner">Study Planner</a>
+      <a href="#features">Features</a>
+    </nav>
+    
+    <div class="header-actions">
+      <a href="#demo" class="btn-primary-sm">Start Learning</a>
+    </div>
+  </div>
+</header>
+
+<main class="main-content">
+  <!-- Glowing Background Blobs for Visual Interest -->
+  <div class="glow-blob blob-1"></div>
+  <div class="glow-blob blob-2"></div>
+  <div class="glow-blob blob-3"></div>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-text-container">
+      <div class="badge">Angular 18 Powered</div>
+      <h1 class="hero-title">Experience the Future of <span class="gradient-text">Intelligent Learning</span></h1>
+      <p class="hero-subtitle">
+        Accelerate your knowledge with AITutor. Ask complex questions, get step-by-step explanations, and track your study progression with reactive signals.
+      </p>
+      <div class="hero-actions">
+        <a href="#demo" class="btn-primary">Try Chat Simulator</a>
+        <a href="#features" class="btn-secondary">Explore Features</a>
+      </div>
+      
+      <!-- Stats Container -->
+      <div class="stats-container">
+        <div class="stat-card">
+          <div class="stat-number">24/7</div>
+          <div class="stat-label">Instant Mentorship</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">4+</div>
+          <div class="stat-label">Core Subjects</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">100%</div>
+          <div class="stat-label">Adaptive Pace</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero Card Visualization -->
+    <div class="hero-visual">
+      <div class="interactive-preview-card glass-panel">
+        <div class="preview-header">
+          <div class="dot-indicators">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+          </div>
+          <span class="preview-title">aitutor-terminal.sh</span>
+        </div>
+        <div class="preview-body">
+          <p class="console-line"><span class="console-prompt">$</span> npm run start-learning</p>
+          <p class="console-output text-success">> Loading AITutor Neural Model v18.0...</p>
+          <p class="console-output text-success">> Handshaking with Angular Signals engine...</p>
+          <p class="console-output">> Ready. Choose your subject to start mastering:</p>
+          <div class="visual-subject-tags">
+            <span class="sub-tag math">Math</span>
+            <span class="sub-tag science">Science</span>
+            <span class="sub-tag history">History</span>
+            <span class="sub-tag coding">Coding</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Subject Selector Tabs -->
+  <section class="subject-selector-section" id="demo">
+    <div class="section-header-centered">
+      <h2>Select a Subject</h2>
+      <p>Switch between subjects to see custom study plans, distinct quick-prompts, and tailored AI tutor responses.</p>
+    </div>
+    
+    <div class="subject-tabs">
+      <button class="subject-tab-btn" [class.active]="selectedSubject() === 'math'" (click)="selectSubject('math')">
+        <span class="tab-icon font-math">∑</span> Math
+      </button>
+      <button class="subject-tab-btn" [class.active]="selectedSubject() === 'science'" (click)="selectSubject('science')">
+        <span class="tab-icon font-science">⚛</span> Science
+      </button>
+      <button class="subject-tab-btn" [class.active]="selectedSubject() === 'history'" (click)="selectSubject('history')">
+        <span class="tab-icon font-history">📜</span> History
+      </button>
+      <button class="subject-tab-btn" [class.active]="selectedSubject() === 'coding'" (click)="selectSubject('coding')">
+        <span class="tab-icon font-coding">&lt;/&gt;</span> Coding
+      </button>
+    </div>
+  </section>
+
+  <!-- Interactive Grid (Chat + Checklist) -->
+  <section class="interactive-grid-section">
+    <div class="interactive-grid">
+      
+      <!-- AI Tutor Chat Simulator -->
+      <div class="widget-card chat-widget glass-panel">
+        <div class="widget-header">
+          <div class="tutor-profile">
+            <div class="tutor-avatar-container">
+              <div class="tutor-avatar-glow"></div>
+              <span class="tutor-avatar-emoji">
+                @switch (selectedSubject()) {
+                  @case ('math') { 🧮 }
+                  @case ('science') { 🔬 }
+                  @case ('history') { 🏛️ }
+                  @case ('coding') { 💻 }
+                }
+              </span>
+            </div>
+            <div class="tutor-info">
+              <h3>AI Tutor ({{ selectedSubject() | uppercase }})</h3>
+              <span class="tutor-status"><span class="status-pulse"></span> Online</span>
+            </div>
+          </div>
+          <button class="btn-clear" (click)="clearChat()" title="Reset Chat">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2M10 11v6M14 11v6"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Chat History -->
+        <div class="chat-history">
+          @for (msg of chatMessages(); track msg.timestamp) {
+            <div class="chat-bubble-container" [class.user-msg]="msg.sender === 'user'" [class.tutor-msg]="msg.sender === 'tutor'">
+              <div class="bubble">
+                <p>{{ msg.text }}</p>
+                <span class="bubble-time">{{ msg.timestamp | date:'shortTime' }}</span>
+              </div>
+            </div>
+          }
+
+          <!-- Tutor Typing State -->
+          @if (tutorIsTyping()) {
+            <div class="chat-bubble-container tutor-msg">
+              <div class="bubble typing-bubble">
+                <div class="typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Quick Prompts Section -->
+        <div class="quick-prompts-wrapper">
+          <span class="quick-prompt-label">Quick Prompts:</span>
+          <div class="quick-prompts-list">
+            @for (prompt of quickPrompts(); track prompt) {
+              <button class="quick-prompt-btn" (click)="askQuickPrompt(prompt)">
+                {{ prompt }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Input Box Area -->
+        <form class="chat-input-form" (submit)="sendMessage(); $event.preventDefault()">
+          <input 
+            type="text" 
+            placeholder="Ask your AI tutor a question about {{ selectedSubject() }}..."
+            [ngModel]="chatInput()" 
+            (ngModelChange)="chatInput.set($event)"
+            name="chatInputField"
+            required
+            autocomplete="off"
+            class="chat-textbox"
+          />
+          <button type="submit" class="btn-send" [disabled]="!chatInput().trim() || tutorIsTyping()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </form>
+      </div>
+
+      <!-- Study Checklist Dashboard -->
+      <div class="widget-card checklist-widget glass-panel" id="planner">
+        <div class="widget-header">
+          <div>
+            <h3>My Study Planner</h3>
+            <p class="widget-subheader">Keep track of topics in your syllabus</p>
+          </div>
+        </div>
+
+        <!-- Progress Metrics -->
+        <div class="progress-section">
+          <div class="progress-details">
+            <span class="progress-percentage">{{ completionProgressPercentage() }}% Mastered</span>
+            <span class="progress-fraction">{{ completedTasksCount() }}/{{ totalTasksCount() }} Tasks</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" [style.width.%]="completionProgressPercentage()"></div>
+          </div>
+        </div>
+
+        <!-- Subject Filter Note -->
+        <div class="subject-filter-badge">
+          Showing syllabus for: <strong>{{ selectedSubject() | uppercase }}</strong>
+        </div>
+
+        <!-- Add syllabus item -->
+        <form class="add-task-form" (submit)="addTask(); $event.preventDefault()">
+          <input
+            type="text"
+            placeholder="Add new study topic for {{ selectedSubject() }}..."
+            [ngModel]="newTaskTitle()"
+            (ngModelChange)="newTaskTitle.set($event)"
+            name="newTaskTitleField"
+            required
+            autocomplete="off"
+            class="planner-textbox"
+          />
+          <button type="submit" class="btn-add-task" [disabled]="!newTaskTitle().trim()">
+            Add
+          </button>
+        </form>
+
+        <!-- Tasks List -->
+        <div class="tasks-list">
+          @for (task of filteredTasks(); track task.id) {
+            <div class="task-item" [class.completed]="task.completed">
+              <label class="task-checkbox-container">
+                <input 
+                  type="checkbox" 
+                  [checked]="task.completed" 
+                  (change)="toggleTask(task.id)"
+                />
+                <span class="custom-checkbox"></span>
+                <span class="task-title-text">{{ task.title }}</span>
+              </label>
+              <button class="btn-delete-task" (click)="deleteTask(task.id)" title="Delete Item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </button>
+            </div>
+          } @empty {
+            <div class="empty-state">
+              <span class="empty-icon">📁</span>
+              <p>No study topics listed for {{ selectedSubject() }}. Add one above to get started!</p>
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Deferrable Views Section (Optimizing performance with Angular 18 Defer) -->
+  <section class="features-section" id="features">
+    <div class="section-header-centered">
+      <h2>Why Choose AITutor?</h2>
+      <p>Modern architecture powered by Angular 18 to deliver seamless, instant academic assistance.</p>
+    </div>
+
+    <!-- The defer block will load the cards once they cross the viewport threshold -->
+    @defer (on viewport) {
+      <div class="features-grid">
+        <div class="feature-card glass-panel">
+          <div class="feature-icon">✨</div>
+          <h3>AI Chat Assistant</h3>
+          <p>Get instant explanations for any question, tailored to your subject. Simulates a human tutor with word-by-word streaming responses.</p>
+        </div>
+        
+        <div class="feature-card glass-panel">
+          <div class="feature-icon">⚡</div>
+          <h3>Reactive Planner</h3>
+          <p>Syllabus tracking using Angular Signals. Updates progress bars, counts, and filters on the fly with sub-millisecond reactivity.</p>
+        </div>
+
+        <div class="feature-card glass-panel">
+          <div class="feature-icon">🎯</div>
+          <h3>Adaptive Subjects</h3>
+          <p>Easily switch profiles. The system adapts its vocabulary, quick actions, and syllabus options dynamically to your target area.</p>
+        </div>
+
+        <div class="feature-card glass-panel">
+          <div class="feature-icon">🌐</div>
+          <h3>Clean Architecture</h3>
+          <p>Built with standalone components, lightweight Angular services, and high-performance rendering that feels snappy on any device.</p>
+        </div>
+      </div>
+    } @loading {
+      <!-- Skeleton loader during load -->
+      <div class="features-skeleton-grid">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+      </div>
+    } @placeholder {
+      <!-- Placeholder content prior to scroll trigger -->
+      <div class="defer-placeholder">
+        <p>✨ Scroll down to view our core technology stack and benefits...</p>
+      </div>
+    }
+  </section>
+</main>
+
+<footer class="app-footer">
+  <div class="footer-container">
+    <p>&copy; 2026 AITutor App. Built with Angular 18 Standalone Components & Signals.</p>
+    <div class="footer-meta">
+      <span>High Performance</span> &bull; <span>Premium Aesthetics</span>
+    </div>
+  </div>
+</footer>
