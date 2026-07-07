@@ -118,9 +118,78 @@ The headline: *"AI has stopped being a feature and started being the foundation.
 
 ---
 
-## §Pass 1 → Pass 2 handoff (do not delete — loop state)
-- **Pass 2 (next):** AI-native B2B/B2C/B2D batch — dev-tools/agent-infra (B2D), consumer AI, SaaS-challenger plays; mine YC W26/S25 batch lists + "software for agents" + eval-infra adjacencies; add 8–10 idea cards with same rubric.
-- **Pass 3 (last):** complex/deep problems (research-flavored: verification-as-infra, Indic data engines, personalized-medicine-lite, agri-intelligence) + **consolidated ranking table of ALL ideas across passes** + final brutal shortlist of top 3 with next-action for each. Then close the loop.
+## §Pass 2 — Batch B: AI-native B2D / B2B / B2C (10 ideas)
+
+> Context from the 2026 field data: YC W26 is the most AI-dense batch ever, and agent infrastructure has matured *past* platforms into **single-bottleneck companies** (evals, guardrails, memory, agent hosting). The sobering stat pair that frames every B2D idea here: **89% of teams have agent observability, only 52% have evals — and ~40% of agentic AI projects face cancellation by 2027 over reliability/ROI.** The demo→production gap IS the market.
+
+### — B2D (sell to developers) —
+
+### B1. Agent Eval & Reliability Infra (the carry-over, re-validated) 🔴 complex
+- **Status update on our original B-1 pick:** still the best math-fit on any list, and now *more* validated — the evals-adoption gap (52% vs 89% observability) is precisely the unserved half. But crowding rose too: Braintrust/LangSmith/Patronus + W26's Salus (guardrails) et al.
+- **Sharpened wedge for 2026:** not generic evals — **outcome-verified evals for agent *workflows*** (did the agent's multi-step task actually achieve the business outcome?), or evals for one vertical (voice agents, coding agents). Generic eval dashboards are done; verified task-completion scoring is not.
+- **Scores:** Crowded 4 · Feasible 4 · Scalable 5 (PLG/OSS) · Viable ₹ 4 · Why-now 5 · Moat 4 (methodology + eval datasets).
+- **Brutal verdict:** the strongest global play we could run. It competes on exactly our strength (measurement math) and its GTM (GitHub, not field sales) fits students. Risk: we'd be a me-too unless the verified-outcome angle is genuinely novel. Note the irony: our tutor's verifier IS an eval engine — the pivot path between idea #1 and this is short.
+
+### B2. Indian-Rails MCP Servers & Gateway (Tally/GSTN/UPI/ONDC for agents) 🟡 medium
+- **Why it exists:** MCP became "the HTML of AI"; Shopify/Stripe/commercetools shipped agent interfaces. **Nobody is building the machine-readable layer for Indian rails** — Tally, GST portal, ONDC, UPI mandates, DigiLocker. Every AI agent entering an Indian SMB in 2027 will need these connectors; first mover becomes default infrastructure.
+- **Build:** OSS MCP servers for 3–4 Indian rails + a hosted gateway (auth, audit, rate limits — the MintMCP model localized).
+- **Scores:** Crowded **1–2** (India-native: virtually nobody) · Feasible 4 · Scalable 4–5 · Viable ₹ 3 (devs pay late; gateway/enterprise tier pays) · Why-now **5** · Moat 3–4 (default-standard + integration depth).
+- **Brutal verdict:** cheapest genuine "own a layer" bet on this whole radar. Danger: Tally/NPCI could ship official servers and flatten you — mitigate by being the *aggregation + governance* layer, not just connectors. Monetization arrives 12–18 months after usage. This is a classic "looks like a toy" Altman idea.
+
+### B3. Agent Memory-as-a-Service 🔴 complex
+- **Why it exists:** memory graduated to a first-class primitive in production agents; context engineering is the new bottleneck.
+- **Brutal verdict:** validated AND already funded hard (Mem0, Zep, Letta + platform players absorbing it). Enter only with a research-grade novelty (e.g. provable memory-consistency guarantees — our math angle). Otherwise it's a feature, not a company. Scores: Crowded 5 · Feasible 3 · Scalable 5 · Viable ₹ 3 · Why-now 4 · Moat 2 without novelty.
+
+### B4. Verifiable RL Environments / Agent Training Gyms 🔴 complex
+- **Why it exists:** the 2026 frontier-lab gold rush is RL environments — labs pay serious money for high-quality, *verifiable* task environments to train agentic models (W26's Carrot Labs = continuous learning; several env startups got swept up by labs). Building an environment = defining a task + a **reward/verification function** — literally our tutor's verifier generalized.
+- **Build:** a library of verifiable environments for quantitative domains (math/physics/finance workflows), sold to labs and post-training teams; or open-core env-engineering tooling.
+- **Scores:** Crowded 3 · Feasible 3–4 · Scalable 4 · Viable ₹ 4 (labs have money and urgency) · Why-now 5 · Moat 4 (env quality is hard-won).
+- **Brutal verdict:** the most intellectually honest fit with our verifier DNA outside the tutor itself — and B2B sales to a dozen labs is a thin, hit-driven market that could evaporate when synthetic env generation matures. High beta. Worth one exploratory conversation with a lab, not a company decision yet.
+
+### B5. AI-Output Audit / "Hallucination Insurance" for Enterprises 🔴 complex
+- **Why it exists:** trust is becoming the consumer/enterprise differentiator; nobody prices AI failure risk. An audit+certification layer ("this workflow's error rate is measured and bounded") is actuarial math + evals.
+- **Brutal verdict:** compelling thesis, *premature market* — buyers don't yet budget for it, and certification without a standards body behind it is just a report. Park for 2027; the eval company (B1) grows into this. Scores: Crowded 2 · Feasible 3 · Scalable 4 · Viable ₹ 2 today · Why-now 3 · Moat 4 if standards land.
+
+### — B2B (sell to businesses) —
+
+### B6. Agentic-Commerce Enablement for Indian D2C/ONDC 🟢 easy-to-start
+- **Why it exists:** shopping is moving into ChatGPT/Gemini answer-surfaces; Shopify Plus merchants get MCP storefronts auto-enabled — **Indian D2C brands and ONDC sellers have no idea this shift is happening.** Whoever makes them discoverable/transactable in AI channels captures the arbitrage window.
+- **Build:** start as a productized service ("get your catalog into AI shopping channels"), harden into a feed/MCP-storefront platform. Charge ₹5–25k/mo per brand.
+- **Scores:** Crowded 2 (India) · Feasible 5 · Scalable 3→4 · Viable ₹ 3–4 · Why-now 5 · Moat 2 (early; speed is the moat).
+- **Brutal verdict:** a classic window-arbitrage business: 24 lucrative months before platforms make it one-click. Great for cash flow + learning agent commerce; weak as a decade company. Fine — not everything must be the decade company (§0: startup vs business, *decide consciously*).
+
+### B7. DPDP-Compliance Autopilot (Vanta for India) 🟡 medium
+- **Why it exists:** India's DPDP Act enforcement is arriving; every company touching personal data needs consent management, data mapping, breach workflows — and the Vanta model (compliance automation → $B+) is fully validated in the US. India-specific rules (consent managers, data-fiduciary tiers, children's data) mean US tools don't fit.
+- **Scores:** Crowded 2–3 (a few early movers, no winner) · Feasible 4 · Scalable 4–5 (SaaS, audit-driven demand) · Viable ₹ 4 (regulatory spend is non-discretionary) · Why-now 5 (enforcement timeline) · Moat 3–4 (rule-engine depth + auditor network).
+- **Brutal verdict:** possibly the best *pure-SaaS* India play in this whole radar: mandatory, recurring, deadline-driven, and the buyer is a company (not a ₹199 consumer). Kill risks: enforcement keeps slipping (demand stays "next quarter"), and big GRC vendors localize. Needs one privacy-lawyer advisor. We flagged DPDP in [[PRD]] for ourselves — we'd be our own first customer.
+
+### — B2C (sell to consumers) —
+
+### B8. Personal-Finance AI on Account-Aggregator Rails 🔴 complex
+- **Why it exists:** India's AA framework gives consented, structured access to a user's full financial life — infrastructure the US *never had* (Plaid is a hack by comparison). US-validated models (Copilot/Monarch, $100/yr) meet an Indian rail. Nobody has nailed AI-native "explain and fix my money" for the UPI generation.
+- **Scores:** Crowded 3 (Fi/Jupiter/CRED circle it; none AI-first) · Feasible 3 (AA onboarding, SEBI/RIA rules for advice) · Scalable 5 · Viable ₹ 2–3 (Indians famously don't pay for finance apps; monetization = distribution of financial products, which corrupts advice) · Why-now 4 · Moat 3.
+- **Brutal verdict:** the TAM-slide looks incredible; the revenue-slide is where it dies. Only enter with a monetization answer that isn't "sell loans" — e.g. B2B2C via employers or the NRI segment (dollar payers again). Otherwise a beautiful graveyard.
+
+### B9. Culturally-Tuned AI Companion / Coach (India) 🟢 easy
+- **Why it exists:** companionship is a top-3 consumer-AI category globally (a16z Top-100); Indian variants (exam stress, family pressure, English-confidence coaching) are underserved by US-cultural models.
+- **Brutal verdict:** engagement is real, and we should be honest: monetization is thin, safety/ethics exposure is severe (minors, mental health), and character apps churn. For a team whose brand is *trust and verification*, an addictive companion app is off-brand and off-mission. **Listed as a conscious NO.** Scores: Crowded 4 · Feasible 5 · Scalable 5 · Viable ₹ 2 · Moat 1–2.
+
+### B10. Creator-Owned AI Tutors (tools for educator-influencers) 🟡 medium
+- **Why it exists:** the a16z creator-ownership trend (creators launching their own AI tools) × India's educator-YouTuber economy (PW started as one teacher on YouTube). Thousands of mid-size educators (50k–2M subs) have audience + content but no tech: give them a white-label AI tutor trained on *their* lectures, rev-share.
+- **Build:** ingest a creator's video corpus → their voice/style AI tutor + doubt-solver for their audience; the educator sells it, we run it. **Distribution hack: every creator brings their own audience — CAC ≈ 0.**
+- **Scores:** Crowded 2 · Feasible 4 (our tutor stack, re-skinned!) · Scalable 4 · Viable ₹ 3–4 (rev-share aligns incentives) · Why-now 4 · Moat 3 (creator lock-in + per-creator data).
+- **Brutal verdict:** strategically spicy for us — it's our [[Lecture-Companion-Overlay]] + verified tutor **with someone else's distribution**. The honest risks: creators are fickle partners, quality control across creators is hard, and platform (YouTube) dependency. Deserves a place in the Pass-3 final ranking discussion as a *GTM variant of idea #1*, not a new company.
+
+## Sources (Pass 2)
+- [CB Insights — YC W26: most technically complex cohort](https://www.cbinsights.com/research/y-combinator-winter-2026/) · [Extruct — W26 breakdown, 199 companies](https://www.extruct.ai/research/ycw26/) · [Forbes — 21 most promising W26 startups](https://www.forbes.com/sites/dariashunina/2026/03/16/21-most-promising-startups-from-y-combinators-latest-batch/)
+- [LangChain — State of Agent Engineering (89% observability vs 52% evals)](https://www.langchain.com/state-of-agent-engineering) · [Firecrawl — 13 agentic trends 2026 (40% cancellation stat)](https://www.firecrawl.dev/blog/agentic-ai-trends) · [RTInsights — 4 infra gaps breaking agent deployments](https://www.rtinsights.com/four-infrastructure-gaps-that-break-ai-agent-deployments-and-how-to-fix-them/)
+- [Advisable — the MCP revolution for SaaS](https://www.advisable.com/insights/the-mcp-revolution-what-model-context-protocol-means-for-saas-products-and-startups-in-2026) · [Stripe — agentic commerce guide](https://stripe.com/guides/agentic-commerce) · [Stellagent — e-commerce MCP implementations](https://stellagent.ai/insights/mcp-server-ecommerce-shopify-commercetools) · [MintMCP — MCP gateways](https://www.mintmcp.com/blog/gateways-ai-startups-with-mcp)
+- [a16z — Top 100 Gen-AI consumer apps (6th ed.)](https://a16z.com/100-gen-ai-apps-6/) · [a16z — State of Consumer AI](https://a16z.com/state-of-consumer-ai-2025-product-hits-misses-and-whats-next/) · [IDC — AI gets personal](https://blogs.idc.com/2025/10/07/ai-gets-personal-a-glimpse-into-the-consumer-future/)
+
+---
+
+## §Pass 2 → Pass 3 handoff (do not delete — loop state)
+- **Pass 3 (last):** complex/deep research-flavored problems (verification-as-infrastructure, Indic data engines, AI personalized-medicine-lite, agri-intelligence for smallholders) — 4–6 cards; then the **consolidated ranking table of ALL ideas (A1–A10, B1–B10, C-batch)** on the six axes; final brutal top-3 shortlist with a concrete next-action each (obeying "sell before build"); close the loop after pushing.
 
 ## Sources (Pass 1)
 - [YC Requests for Startups (Summer 2026)](https://www.ycombinator.com/rfs) · [TheVCCorner — all 15 + 150 concrete ideas](https://www.thevccorner.com/p/yc-summer-2026-requests-for-startups-ideas) · [TNW on YC's hard-tech pivot](https://thenextweb.com/news/yc-summer-2026-rfs-hard-tech-pivot)
