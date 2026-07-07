@@ -6,6 +6,8 @@ updated: 2026-06-28
 
 > Full phased plan lives in [[A1-Math-Verified-Tutor-Dev-Plan]] §4 & §9. This note is the **navigable summary + "right now."**
 
+> ⚠️ **Pre-registered kill criteria now live in [[Viability-Brutal-Honesty]] §5** — Phase-0 gate fail, 90 days/zero institutes, D30 <10%, false-verified >1%. Check every phase against them. Requirements per release → [[PRD]] §3.4; build design → [[Architecture-Options]].
+
 ## ▶️ Right now (this week)
 - [ ] **Decide the lane** — commit India-tutor (Lane A) for 6 months, or run the 2-week build-off vs eval-infra (Lane B). → [[Market-and-GTM]] open decision.
 - [ ] **Apply for credits** — AWS Activate, Google/OpenAI/Anthropic for Startups, **Sarvam startup program**.

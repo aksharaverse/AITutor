@@ -8,6 +8,9 @@ interface ChatMessage {
   sender: 'user' | 'tutor';
   text: string;
   timestamp: Date;
+  // true = answer passed the (simulated) math verifier; false = honest abstention;
+  // undefined = system/welcome message, no badge shown
+  verified?: boolean;
 }
 
 interface StudyTask {
@@ -140,6 +143,7 @@ export class AppComponent implements OnInit {
 
     // Prepare container for tutor's streamed response
     let tutorMessageIndex = -1;
+    const willBeVerified = this.tutorService.isVerifiable(this.selectedSubject(), promptText);
 
     // Call service to stream response
     this.chatSubscription = this.tutorService
@@ -176,6 +180,17 @@ export class AppComponent implements OnInit {
         },
         complete: () => {
           this.tutorIsTyping.set(false);
+          // Attach the verification badge once the full answer has streamed in
+          if (tutorMessageIndex !== -1) {
+            this.chatMessages.update(msgs => {
+              const updated = [...msgs];
+              updated[tutorMessageIndex] = {
+                ...updated[tutorMessageIndex],
+                verified: willBeVerified
+              };
+              return updated;
+            });
+          }
         }
       });
   }

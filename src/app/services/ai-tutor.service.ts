@@ -50,12 +50,26 @@ export class AiTutorService {
   };
 
   private defaultReplies = [
-    "That's an interesting question! As your AI Tutor, I recommend exploring the core fundamentals of this subject. Let's break it down step by step.",
-    "Great question. Let's look at this concept systematically. We can identify the core principles and solve them logically.",
-    "A brilliant observation! Let's think about how this relates to what we've already covered. Would you like a practice problem to test this?"
+    "Honest answer: I can't verify a solution to this one yet, and I'd rather tell you that than guess. Try one of the quick prompts to see a machine-checked explanation.",
+    "I don't have a verified solution for this question in my bank. Rather than risk teaching you a wrong step, I'm flagging it as unverified — ask me a math or science question to see verification in action.",
+    "This falls outside what I can machine-check right now. A confident wrong answer is worse than an honest 'I'm not sure' — that's the whole point of AITutor."
   ];
 
   constructor() {}
+
+  // Simulates the verifier gate: known bank answers count as machine-checked,
+  // anything falling through to a default reply is an honest abstention
+  isVerifiable(subject: string, question: string): boolean {
+    const sub = subject.toLowerCase();
+    const q = question.toLowerCase();
+    const subjectList = this.responses[sub] || [];
+    if (subjectList.some(item => item.keywords.some(kw => q.includes(kw)))) {
+      return true;
+    }
+    return Object.values(this.responses).some(list =>
+      list.some(item => item.keywords.some(kw => q.includes(kw)))
+    );
+  }
 
   // Simulates AI streaming back words
   streamResponse(subject: string, question: string): Observable<string> {

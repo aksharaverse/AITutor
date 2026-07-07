@@ -35,10 +35,10 @@
   <!-- Hero Section -->
   <section class="hero-section">
     <div class="hero-text-container">
-      <div class="badge">Angular 18 Powered</div>
-      <h1 class="hero-title">Experience the Future of <span class="gradient-text">Intelligent Learning</span></h1>
+      <div class="badge">✓ Every step machine-verified</div>
+      <h1 class="hero-title">The AI Tutor That's <span class="gradient-text">Never Confidently Wrong</span></h1>
       <p class="hero-subtitle">
-        Accelerate your knowledge with AITutor. Ask complex questions, get step-by-step explanations, and track your study progression with reactive signals.
+        Built for JEE &amp; NEET. Every solution step is checked by a math engine — not just an AI's guess. When we can't verify something, we tell you honestly instead of hallucinating.
       </p>
       <div class="hero-actions">
         <a href="#demo" class="btn-primary">Try Chat Simulator</a>
@@ -48,16 +48,16 @@
       <!-- Stats Container -->
       <div class="stats-container">
         <div class="stat-card">
+          <div class="stat-number">99%+</div>
+          <div class="stat-label">Step-Precision Target</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">&lt;8s</div>
+          <div class="stat-label">To a Verified Answer</div>
+        </div>
+        <div class="stat-card">
           <div class="stat-number">24/7</div>
-          <div class="stat-label">Instant Mentorship</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number">4+</div>
-          <div class="stat-label">Core Subjects</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number">100%</div>
-          <div class="stat-label">Adaptive Pace</div>
+          <div class="stat-label">Doubt Solving</div>
         </div>
       </div>
     </div>
@@ -149,6 +149,11 @@
             <div class="chat-bubble-container" [class.user-msg]="msg.sender === 'user'" [class.tutor-msg]="msg.sender === 'tutor'">
               <div class="bubble">
                 <p>{{ msg.text }}</p>
+                @if (msg.sender === 'tutor' && msg.verified === true) {
+                  <span class="verify-tag verified">✓ Steps machine-checked</span>
+                } @else if (msg.sender === 'tutor' && msg.verified === false) {
+                  <span class="verify-tag unverified">△ Not verified — flagged honestly</span>
+                }
                 <span class="bubble-time">{{ msg.timestamp | date:'shortTime' }}</span>
               </div>
             </div>
@@ -281,34 +286,34 @@
   <section class="features-section" id="features">
     <div class="section-header-centered">
       <h2>Why Choose AITutor?</h2>
-      <p>Modern architecture powered by Angular 18 to deliver seamless, instant academic assistance.</p>
+      <p>"LLM proposes, math disposes." A verification engine — not a bigger chatbot — is what makes a tutor trustworthy.</p>
     </div>
 
     <!-- The defer block will load the cards once they cross the viewport threshold -->
     @defer (on viewport) {
       <div class="features-grid">
         <div class="feature-card glass-panel">
-          <div class="feature-icon">✨</div>
-          <h3>AI Chat Assistant</h3>
-          <p>Get instant explanations for any question, tailored to your subject. Simulates a human tutor with word-by-word streaming responses.</p>
+          <div class="feature-icon">✅</div>
+          <h3>Verified Steps</h3>
+          <p>Every solution step is checked by a symbolic + numeric math engine (CAS, unit analysis, equivalence testing). If a step can't be verified, we say so instead of guessing.</p>
         </div>
-        
+
+        <div class="feature-card glass-panel">
+          <div class="feature-icon">🔍</div>
+          <h3>Wrong-Step Diagnosis</h3>
+          <p>Paste your own attempt and we pinpoint the exact step where it went wrong — and whether the mistake was conceptual, computational, or careless.</p>
+        </div>
+
         <div class="feature-card glass-panel">
           <div class="feature-icon">⚡</div>
-          <h3>Reactive Planner</h3>
-          <p>Syllabus tracking using Angular Signals. Updates progress bars, counts, and filters on the fly with sub-millisecond reactivity.</p>
+          <h3>Fast or Guided — Your Call</h3>
+          <p>Need the answer now? Fast mode gives the full verified solution. Want to learn? Guided mode reveals one hint at a time, Socratic-style, without forcing it.</p>
         </div>
 
         <div class="feature-card glass-panel">
-          <div class="feature-icon">🎯</div>
-          <h3>Adaptive Subjects</h3>
-          <p>Easily switch profiles. The system adapts its vocabulary, quick actions, and syllabus options dynamically to your target area.</p>
-        </div>
-
-        <div class="feature-card glass-panel">
-          <div class="feature-icon">🌐</div>
-          <h3>Clean Architecture</h3>
-          <p>Built with standalone components, lightweight Angular services, and high-performance rendering that feels snappy on any device.</p>
+          <div class="feature-icon">🗣️</div>
+          <h3>Made for India</h3>
+          <p>JEE &amp; NEET aligned problem bank, Hinglish and regional-language explanations, voice support, and delivery over WhatsApp — no app install needed.</p>
         </div>
       </div>
     } @loading {
@@ -330,9 +335,9 @@
 
 <footer class="app-footer">
   <div class="footer-container">
-    <p>&copy; 2026 AITutor App. Built with Angular 18 Standalone Components & Signals.</p>
+    <p>&copy; 2026 AITutor. Every step we show you is checked by a math engine — if we're not sure, we say so.</p>
     <div class="footer-meta">
-      <span>High Performance</span> &bull; <span>Premium Aesthetics</span>
+      <span>Verified Reasoning</span> &bull; <span>Honest Uncertainty</span> &bull; <span>Built for JEE/NEET</span>
     </div>
   </div>
 </footer>

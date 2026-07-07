@@ -16,12 +16,14 @@ updated: 2026-06-28
 - [[Durable-Moat]] — how we build a company that **survives AI changing every 3 months**. Level 1 / 2 / 3 startups; the Replaceability Principle.
 
 ## 🏗️ Architecture (the intelligence layer)
+- [[Architecture-Options]] — 🆕 the three candidate designs (pipeline → gateway → agentic), model/API matrix, orchestration best practices. **Resolves the "how agentic in v1?" question: not agentic.**
 - [[Cognitive-Architecture]] — the 5 layers + the model router. We build an "AI OS," not a chatbot.
 - [[Verification-Engine]] — 🥇 **the moat**. "LLM proposes, math disposes." (deep dive → [[A1-Math-Verified-Tutor-Dev-Plan]] §1)
 - [[Retrieval-Knowledge-Layer]] — retrieve *knowledge*, not documents. Content quality > model.
 - [[Student-Model]] — the "active student state": intent, memory, misconceptions, mastery (BKT/IRT).
 
 ## 🎁 Product surface
+- [[PRD]] — 🆕 the combined BRD/PRD: personas, functional requirements (F1–F7), NFRs (incl. DPDP), release plan, metrics.
 - [[Lecture-Companion-Overlay]] — meet the student *inside the lecture they're already watching*; our verifier catches the teacher's mistakes live.
 - [[Fast-vs-Guided-Toggle]] — "just verify" vs "walk me through," per-problem; the anti-cognitive-offloading nudge.
 
@@ -29,6 +31,7 @@ updated: 2026-06-28
 - [[Codebase-AITutor]] — the Angular 18 frontend prototype ([repo](https://github.com/avideo-guru/AITutor)). Currently a UI shell with a *fake* tutor service; the note maps where the real backend plugs in.
 
 ## 📈 Strategy & market
+- [[Viability-Brutal-Honesty]] — 🆕 **read before pitching anyone**: the five brutal truths (melting accuracy wedge, engagement > accuracy, pricing vs free, untested GTM, autoformalization risk), competitor+human-tutor gap map, economics, and pre-registered kill criteria.
 - [[Competitive-Landscape]] — the 4 failures every existing tutor has (and which one we each answer).
 - [[Market-and-GTM]] — India, the two lanes, B2B2C through coaching institutes, pricing.
 - [[Roadmap]] — phases, the 2-week kickoff, team roles.
