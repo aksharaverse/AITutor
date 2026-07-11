@@ -1,18 +1,20 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
+import asyncpg
 
-from .config import settings
+from app.config import settings
 
-
-class Base(DeclarativeBase):
-    pass
+pool: asyncpg.Pool | None = None
 
 
-engine = create_engine(settings.database_url, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(bind=engine, autoflush=False)
+async def connect() -> None:
+    global pool
+    pool = await asyncpg.create_pool(settings.database_url, min_size=1, max_size=10)
 
 
-def init_db() -> None:
-    from . import models  # noqa: F401 — register tables
+async def disconnect() -> None:
+    if pool is not None:
+        await pool.close()
 
-    Base.metadata.create_all(engine)
+
+def get_pool() -> asyncpg.Pool:
+    assert pool is not None, "db.connect() not called"
+    return pool

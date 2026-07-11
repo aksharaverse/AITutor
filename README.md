@@ -1,27 +1,51 @@
-# Aitutor
+# AITutor
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.21.
+Grounded, step-by-step AI tutoring for IIT-JEE / NEET aspirants. RAG-grounded
+Q&A today; a verified-reasoning engine ("LLM proposes, math disposes") is the
+long-term moat — see [`docs/Startup-MOC.md`](docs/Startup-MOC.md).
 
-## Development server
+## Stack (current — MVP scaffold)
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+- **`frontend/`** — Expo / React Native, web-first PWA (iOS/Android from the
+  same codebase later). Four screens: Ask, Thread, History, Account.
+- **`backend/`** — FastAPI monolith. RAG (Supabase Postgres + pgvector) →
+  DeepSeek (primary) / Gemini (vision + failover), SSE streaming, Stripe
+  billing.
+- **Supabase** — auth, Postgres + pgvector, file storage. One managed
+  service instead of three.
 
-## Code scaffolding
+Full architecture and design rationale:
+[`docs/Architecture/AITutor-MVP-Architecture.md`](docs/Architecture/AITutor-MVP-Architecture.md).
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## Quickstart
 
-## Build
+```bash
+# backend
+cd backend
+cp .env.example .env        # fill in Supabase + LLM + Stripe keys
+python -m venv .venv && .venv\Scripts\activate   # Windows; source .venv/bin/activate on macOS/Linux
+pip install -r requirements-dev.txt
+uvicorn app.main:app --reload --port 8080
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+# frontend (separate shell)
+cd frontend
+cp .env.example .env        # Supabase URL/anon key + API URL
+npm install
+npm run web                 # http://localhost:8081
+```
 
-## Running unit tests
+See [`backend/README.md`](backend/README.md) and
+[`frontend/README.md`](frontend/README.md) for full setup, including the
+one-time Supabase project + `schema.sql` step and content ingestion.
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+## Docs
 
-## Running end-to-end tests
+Product/architecture decisions live in [`docs/`](docs/) (an Obsidian-style
+vault); code lives here. Start at
+[`docs/Startup-MOC.md`](docs/Startup-MOC.md).
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+## Prior implementation
 
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+An earlier Angular + FastAPI/SQLite (Claude + planned SymPy verifier) build
+is preserved on the `archive/angular-fastapi-redesign` branch — nothing was
+deleted when the stack changed.

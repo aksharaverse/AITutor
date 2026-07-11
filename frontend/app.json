@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "AITutor",
+    "slug": "aitutor",
+    "version": "1.0.0",
+    "scheme": "aitutor",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": { "supportsTablet": true },
+    "android": { "edgeToEdgeEnabled": true },
+    "web": { "bundler": "metro", "output": "single" },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        { "photosPermission": "AITutor needs photo access so you can attach a picture of a problem." }
+      ]
+    ]
+  }
+}
