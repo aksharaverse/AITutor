@@ -1,10 +1,12 @@
 ---
-tags: [type/note, domain/ai, domain/startup, status/active]
-updated: 2026-07-10
+tags: [type/note, domain/ai, domain/startup, status/superseded]
+updated: 2026-07-11
 ---
 > 🧠 Part of the [[Startup-MOC|Startup brain]] · implements → [[A1-Math-Verified-Tutor-Dev-Plan]] · [[High Level Architecture]]
 
-# Backend Implementation Plan (v1 — "Basic Backend")
+> ⚠️ **Superseded (2026-07-11):** the repo switched stacks — Angular + this Claude/SymPy-verifier backend is preserved on the `archive/angular-fastapi-redesign` branch, not deleted. The current `backend/` on `main` is a faster-to-ship FastAPI + Supabase + DeepSeek/Gemini RAG tutor with **no verifier yet** — see [[AITutor-MVP-Architecture]] for what's actually running. **§3 below (the SymPy verifier design) is still the target** for the phase after the Q&A loop proves it retains users; don't discard the thinking, just don't expect it in the current codebase.
+
+# Backend Implementation Plan (v1 — "Basic Backend", historical/target design)
 
 **Goal:** replace the simulated `AiTutorService` in the Angular app with a real backend that does three things: (1) stream real AI tutor answers, (2) verify math steps with a real engine, (3) persist chats + study planner. Everything else (auth at scale, WhatsApp, voice, fine-tuning) is explicitly out of scope for v1.
 

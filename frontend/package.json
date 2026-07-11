@@ -1,0 +1,38 @@
+{
+  "name": "aitutor-app",
+  "version": "1.0.0",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "web": "expo start --web",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@expo/metro-runtime": "~5.0.4",
+    "@react-native-async-storage/async-storage": "2.1.2",
+    "@supabase/supabase-js": "^2.49.0",
+    "@tanstack/react-query": "^5.75.0",
+    "expo": "~53.0.9",
+    "expo-constants": "~17.1.5",
+    "expo-image-picker": "~16.1.4",
+    "expo-linking": "~7.1.4",
+    "expo-router": "~5.0.6",
+    "expo-status-bar": "~2.2.3",
+    "katex": "^0.16.22",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "react-native": "0.79.2",
+    "react-native-safe-area-context": "5.4.0",
+    "react-native-screens": "~4.10.0",
+    "react-native-web": "~0.20.0",
+    "zustand": "^5.0.4"
+  },
+  "devDependencies": {
+    "@types/katex": "^0.16.7",
+    "@types/react": "~19.0.10",
+    "typescript": "~5.8.3"
+  },
+  "private": true
+}

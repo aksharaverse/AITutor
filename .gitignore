@@ -1,15 +1,32 @@
 # See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
-# Compiled output
-/dist
-/tmp
-/out-tsc
-/bazel-out
-
-# Node
-/node_modules
+# Node (any depth: frontend/node_modules, etc.)
+node_modules/
 npm-debug.log
 yarn-error.log
+
+# Expo / React Native (frontend/)
+.expo/
+dist/
+web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Python (backend/)
+.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+*.db
+
+# Env files (never commit secrets)
+.env
+.env.local
+*.env
 
 # IDEs and editors
 .idea/
@@ -29,7 +46,7 @@ yarn-error.log
 .history/*
 
 # Miscellaneous
-/.angular/cache
+.angular/
 .sass-cache/
 /connect.lock
 /coverage
@@ -40,16 +57,10 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Local agent/session config
 .claude/
-
-# Python backend
-backend/.venv/
-backend/__pycache__/
-backend/**/__pycache__/
-backend/.env
-backend/*.db
 
 # Personal notes (not part of the product repo)
 docs/Trading/

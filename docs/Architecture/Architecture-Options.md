@@ -4,7 +4,7 @@ updated: 2026-07-06
 ---
 # 🧭 Architecture Options — three designs, one evolution path
 
-> Multi-architecture analysis for the [[Verified-Reasoning-Engine]]: three candidate designs, a model/API selection matrix, and 2026 orchestration best practices from production-LLM literature. Complements [[Cognitive-Architecture]] (the conceptual layers) and answers its open question *"how agentic in v1?"* — **answer: not agentic in v1.**
+> Multi-architecture analysis for the [[Verified-Reasoning-Engine]]: three candidate designs, a model/API selection matrix, and 2026 orchestration best practices from production-LLM literature. Complements [[Cognitive-Architecture]] (the conceptual layers) and answers its open question *"how agentic in v1?"* — **answer: not agentic in v1.** The concrete MVP build (`frontend/` + `backend/` in this repo) implements Option A — see [[AITutor-MVP-Architecture]] for the exact stack, API surface, and data model.
 
 ---
 
@@ -104,7 +104,7 @@ Badges stream as `checking` and upgrade to `verified` asynchronously — this is
 ## Connections
 - Implements → [[Cognitive-Architecture]] (and closes its open decisions) · Moat spec → [[Verification-Engine]]
 - Serves → [[PRD]] §F-modules · Strategy constraints → [[Viability-Brutal-Honesty]]
-- Frontend seam → [[Codebase-AITutor]] · Hub → [[Startup-MOC]]
+- Concrete build → [[AITutor-MVP-Architecture]] · Frontend seam → [[Codebase-AITutor]] · Hub → [[Startup-MOC]]
 
 ## Sources
 - [Redis — LLM router architecture best practices 2026](https://redis.io/blog/llm-router-architecture-best-practices/) (RouteLLM ~95% quality at 14% strong-model traffic; semantic-cache-first)

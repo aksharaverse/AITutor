@@ -16,7 +16,8 @@ updated: 2026-06-28
 - [[Durable-Moat]] — how we build a company that **survives AI changing every 3 months**. Level 1 / 2 / 3 startups; the Replaceability Principle.
 
 ## 🏗️ Architecture (the intelligence layer)
-- [[Architecture-Options]] — 🆕 the three candidate designs (pipeline → gateway → agentic), model/API matrix, orchestration best practices. **Resolves the "how agentic in v1?" question: not agentic.**
+- [[AITutor-MVP-Architecture]] — 🆕 **what's actually running now**: Expo + FastAPI + Supabase MVP spec (v3). Honest read: ships the RAG-tutor loop fast, defers the verifier — see its "honest read" note.
+- [[Architecture-Options]] — the three candidate designs (pipeline → gateway → agentic), model/API matrix, orchestration best practices. **Resolves the "how agentic in v1?" question: not agentic.**
 - [[Cognitive-Architecture]] — the 5 layers + the model router. We build an "AI OS," not a chatbot.
 - [[Verification-Engine]] — 🥇 **the moat**. "LLM proposes, math disposes." (deep dive → [[A1-Math-Verified-Tutor-Dev-Plan]] §1)
 - [[Retrieval-Knowledge-Layer]] — retrieve *knowledge*, not documents. Content quality > model.
@@ -28,7 +29,7 @@ updated: 2026-06-28
 - [[Fast-vs-Guided-Toggle]] — "just verify" vs "walk me through," per-problem; the anti-cognitive-offloading nudge.
 
 ## 💻 Build / codebase
-- [[Codebase-AITutor]] — the Angular 18 frontend prototype ([repo](https://github.com/avideo-guru/AITutor)). Currently a UI shell with a *fake* tutor service; the note maps where the real backend plugs in.
+- [[Codebase-AITutor]] — the Expo (`frontend/`) + FastAPI/Supabase (`backend/`) MVP ([repo](https://github.com/avideo-guru/AITutor)). Prior Angular + Claude/SymPy-verifier-planned stack preserved on the `archive/angular-fastapi-redesign` branch.
 
 ## 💡 Idea pipeline
 - [[Startup-Idea-Radar]] — 🆕 rolling 3-pass scouting doc: idea-identification canon (Altman CS183B, PG/YC, 2026 RFS) + scored idea batches. Keeps us idea-rich and pressure-tests idea #1.

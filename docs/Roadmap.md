@@ -14,7 +14,7 @@ updated: 2026-06-28
 - [ ] **Curate 100 JEE Main Physics problems** (mechanics + electricity) with ground-truth answers (the Phase-0 dataset).
 - [ ] **Merge ChatGPT + Claude brainstorms** into the `Open / contested` sections across these notes.
 
-> 💻 Frontend already scaffolded → [[Codebase-AITutor]]. Phase-0 work = stand up the verifier backend behind its `AiTutorService` seam (define the API contract first).
+> 💻 MVP scaffolded → [[Codebase-AITutor]] (Expo `frontend/` + FastAPI/Supabase `backend/`, spec: [[AITutor-MVP-Architecture]]). It ships the RAG-tutor loop first, **without** the verifier — Phase-0 work below (verifier accuracy gate) still applies before any "verified" badge ships to users.
 
 ## Phase 0 — De-risk the core (Weeks 0–2) ← *the kill test*
 Prove the one thing that can kill us: **does [[Verification-Engine|verification]] lift correctness enough to matter?**
