@@ -48,14 +48,35 @@ updated: 2026-07-12
     caller-owned turns as `history` (after the cache-stable system prompt),
     truncation keeps the boxed answer; `thread_id` persisted + returned in
     `meta`. Suite 23 passing.
-- **Next:** P1 pipeline seams (pure refactor to the `orchestrator/`,
-  `retrieval/`, `models/` layout) — OR deploy the walking skeleton first.
-- **Blocking:** Supabase MCP on this account shows 0 projects — needs re-auth
-  in an interactive session (`/mcp`) before any live DB / migration work. All
-  P0 schema changes are staged in `schema.sql` as additive migrations, ready
-  to apply once reconnected. (Note: `deps.py` builds a `PyJWKClient` at import
-  time and rejects an empty `SUPABASE_URL` — set it, or the app/tests can't
-  import. Worth fixing to lazy-init.)
+- **Next:** directive from UI account (2026-07-12), Phase 0 review ACCEPTED —
+  do these in order, code-only:
+  1. **Open the PR `feat/backend-phase0` → `main`.** Phase 0 is shippable
+     alone; main becomes the deploy baseline for the UI account's e2e work.
+  2. First commit after merge: the `deps.py` **lazy-init fix** (JWKS client is
+     built at import time; nothing imports without `SUPABASE_URL` set).
+  3. Start **P1 pipeline seams** on a fresh branch off main
+     (`feat/backend-phase1-seams`). Pure refactor, zero behavior change is
+     the acceptance test — the failover-only-before-first-token subtlety in
+     `stream_answer` must move intact.
+  4. Contract decisions inside P1: give the `verify/` stub's `Verdict` an
+     optional `confidence: float` (one line now, avoids a Protocol migration
+     when an ML/RLVR verifier lands); failover policy belongs in the
+     **Router**, not inside each model adapter — set that seam now even while
+     the logic stays hardcoded.
+  5. **Do NOT merge P1** until the UI account's live e2e prove-it passes on
+     P0 — its recorded SSE transcript is P1's byte-identical baseline. Use
+     the mocked-LLM equality test in the meantime.
+  - Do NOT touch deploy/Supabase from this account — see below, the blocker
+    moved sides.
+- **Blocking:** nothing for the steps above (all code-only). The old Supabase
+  blocker is VOID for you: the live project (`xdszkwjkaamyycirfslz`) is
+  connected via MCP on the **UI account**, which now owns all live-infra work
+  — applying the P0 migrations from `schema.sql`, enabling RLS on
+  `chunks`/`billing_events` (Supabase advisor flag), wiring secrets, ingesting
+  Physics–Optics, and running the P0 prove-it (3 questions + mid-stream kill).
+  Coordination rule: if the e2e run surfaces a bug, it gets fixed on main
+  *before* P1 rebases on it — don't race fixes in parallel in `ask.py` /
+  `core/llm.py`.
 
 ## UI/UX (`feat/ui-redesign`)
 - **Status:** in progress — picking up pre-existing uncommitted changes
