@@ -3,6 +3,7 @@ import hashlib
 import json
 import logging
 import time
+import uuid
 from typing import AsyncIterator
 
 from fastapi import APIRouter, Depends
@@ -25,16 +26,57 @@ router = APIRouter()
 _pending: set[asyncio.Task] = set()
 
 
+HISTORY_PAIRS = 4          # prior Q/A pairs fed back as context
+HISTORY_ANSWER_CHARS = 1000  # per-answer truncation budget
+
+
 class AskRequest(BaseModel):
     text: str | None = Field(default=None, max_length=4000)
     image_url: str | None = None
     chapter: str | None = None
+    thread_id: uuid.UUID | None = None
 
     @model_validator(mode="after")
     def _something_asked(self):
         if not (self.text or self.image_url):
             raise ValueError("Provide text and/or image_url")
         return self
+
+
+def _truncate_history_answer(answer: str, limit: int = HISTORY_ANSWER_CHARS) -> str:
+    """Keep the history token budget bounded, but preserve the boxed final
+    answer line — that's the part a follow-up most likely refers back to."""
+    if len(answer) <= limit:
+        return answer
+    head = answer[:limit].rstrip()
+    boxed = next(
+        (ln.strip() for ln in reversed(answer.splitlines()) if "\\boxed" in ln), ""
+    )
+    if boxed and boxed not in head:
+        return f"{head}\n…\n{boxed}"
+    return head + "…"
+
+
+async def _load_history(pool, thread_id, user_id) -> list[dict]:
+    """Last N answered turns of this thread, owned by the caller, oldest-first,
+    as OpenAI-style messages. Filtering by user_id means another user's
+    thread_id simply yields no history — no leak, no cross-user context."""
+    rows = await pool.fetch(
+        """
+        select question, answer from sessions
+        where thread_id = $1 and user_id = $2
+          and answer is not null and answer <> ''
+        order by created_at desc
+        limit $3
+        """,
+        thread_id, user_id, HISTORY_PAIRS,
+    )
+    msgs: list[dict] = []
+    for r in reversed(rows):
+        msgs.append({"role": "user", "content": r["question"]})
+        msgs.append({"role": "assistant",
+                     "content": _truncate_history_answer(r["answer"])})
+    return msgs
 
 
 def _sse(event: str, data: dict) -> str:
@@ -119,6 +161,9 @@ async def ask(body: AskRequest, profile: dict = Depends(get_profile)):
 
     question = body.text or "Solve the problem shown in the attached image."
 
+    # A new ask starts a fresh thread; a follow-up carries the client's thread_id.
+    thread_id = body.thread_id or uuid.uuid4()
+
     # Retrieval happens before the stream opens so retrieval errors are clean 5xx.
     stage_latency: dict[str, int] = {}
     t = time.perf_counter()
@@ -131,7 +176,14 @@ async def ask(body: AskRequest, profile: dict = Depends(get_profile)):
         retrievers_used = []
     stage_latency["retrieve_ms"] = int((time.perf_counter() - t) * 1000)
 
-    messages = build_messages(chunks, [], question)
+    history: list[dict] = []
+    if body.thread_id is not None:
+        try:
+            history = await _load_history(pool, thread_id, profile["id"])
+        except Exception:
+            log.exception("history load failed; answering without it")
+
+    messages = build_messages(chunks, history, question)
     prompt_hash = _prompt_hash(messages)
     chunk_json = [
         {
@@ -165,12 +217,13 @@ async def ask(body: AskRequest, profile: dict = Depends(get_profile)):
                         session_row = await conn.fetchrow(
                             """
                             insert into sessions
-                              (user_id, question, image_url, answer, model,
-                               tokens_in, tokens_out, cost_usd)
-                            values ($1, $2, $3, $4, $5, $6, $7, $8)
+                              (user_id, thread_id, question, image_url, answer,
+                               model, tokens_in, tokens_out, cost_usd)
+                            values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                             returning id, created_at
                             """,
-                            profile["id"], question, body.image_url, answer,
+                            profile["id"], thread_id, question, body.image_url,
+                            answer,
                             usage.model if usage else None,
                             usage.tokens_in if usage else None,
                             usage.tokens_out if usage else None,
@@ -221,6 +274,7 @@ async def ask(body: AskRequest, profile: dict = Depends(get_profile)):
             row = await persist(disconnected=False, gate_outcome="show")
             yield _sse("meta", {
                 "session_id": str(row["id"]) if row else None,
+                "thread_id": str(thread_id),
                 "model": usage.model if usage else None,
                 "tokens_in": usage.tokens_in if usage else 0,
                 "tokens_out": usage.tokens_out if usage else 0,

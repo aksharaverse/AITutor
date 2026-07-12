@@ -85,3 +85,12 @@ create table if not exists traces (
   created_at timestamptz default now()
 );
 create index if not exists traces_created_idx on traces (created_at);
+
+-- Migration (P0.3): feedback capture + thread grouping on sessions (additive).
+-- feedback_rating is 'up' | 'down'; thread_id groups a follow-up conversation
+-- so /v1/ask can load prior turns as context.
+alter table sessions add column if not exists thread_id uuid;
+alter table sessions add column if not exists feedback_rating text;
+alter table sessions add column if not exists feedback_reason text;
+alter table sessions add column if not exists feedback_at timestamptz;
+create index if not exists sessions_thread_idx on sessions (thread_id, created_at);
