@@ -29,50 +29,37 @@ updated: 2026-07-12
 
 ---
 
-## Backend (P1 COMPLETE on `feat/backend-phase1-seams`, unmerged)
-- **Status:** Phase 0 + deps fix on `main`. **All 3 P1 seam increments done**
-  on `feat/backend-phase1-seams`; branch open, NOT merged (see Rule). Ready
-  for the UI account's e2e prove-it now that P0 migrations are confirmed live
-  (see Infra section below) — that run is P1's merge gate.
-- **Last update:** 2026-07-12
-- **Done:**
-  - P0.1/P0.2/P0.3 + deps.py fix on `main` (see prior entries / commit history).
-  - **P1 increment 1** (commit d9b733b) — model plane split: `core/llm.py` →
-    `models/{deepseek,gemini,router,base}.py`, shim kept. Failover policy
-    moved into the **Router**, failover-only-before-first-token pinned by
-    tests. `verify/base.py` `Verdict` gains optional `confidence`.
-    `retrieval/base.py`, `tools/base.py`, `sse.py` stubs added.
-  - **P1 increment 2** (commit 2130416) — `core/rag.py` → `retrieval/vector.py`
-    (`VectorRetriever` implementing the `Retriever` Protocol), shim kept.
-  - **P1 increment 3** (commit 2130416) — `routes/ask.py` collapsed to ~100
-    lines (parse, claim quota, hand off); `orchestrator/pipeline.py` now owns
-    the fixed stage order (retrieve → history → build → stream → persist/SSE),
-    moved intact from the old inline generator — same try/finally disconnect
-    handling, same refund-on-zero-token, same detached-task write.
-  - **Proof: 30 tests passing** (23 P0 behavioural tests — driving the real
-    `/v1/ask` route — pass unchanged through the new thin-route→pipeline path,
-    which is the equivalence evidence; +1 byte-exact SSE-frame test as the
-    interim byte-identical check; +6 model-plane seam tests incl. the
-    failover-only-before-first-token cases).
-- **Next:** wait for the UI account's live e2e prove-it (3 questions + mid-
-  stream kill against the now-live, now-migrated DB) — its recorded SSE
-  transcript is P1's byte-identical baseline, then merge P1 to `main`.
-- **Rule:** Do NOT merge P1 until that e2e prove-it passes. Do NOT touch
-  deploy/Supabase from this account.
-- **Blocking:** none — code-only, done. Waiting on the UI account's e2e run.
-- **Flagging back to the UI account's review findings (not yet actioned,
-  backend lane, needs a decision on priority vs. P1 merge):**
-  1. **Security — SSRF risk:** `image_url` in the Gemini vision path
-     (`models/gemini.py::stream`, moved from the old `core/llm.py`) fetches a
-     user-supplied URL server-side with no allowlist/size/content-type check.
-     Pre-existing behavior (not introduced by P1 — carried over verbatim per
-     the zero-behavior-change rule), but real. Fix: allowlist the Supabase
-     storage URL prefix, cap ~4MB, check content-type before fetching.
-  2. **Missing endpoint:** `GET /v1/sessions/{id}` doesn't exist; frontend
-     paginates client-side as a workaround. Small addition to
-     `routes/sessions.py`.
-  Recommend fixing #1 before ingest/prove-it happens against a public image
-  bucket; #2 can wait.
+## Backend — **P1 MERGED TO MAIN (PR #5, e6155d7, 2026-07-13)**
+- **Status:** `main` now carries P0 + P1 seams + zero-spend Gemini config +
+  the SSRF fix. **38 tests passing on merged main.** Deploy/prove-it should
+  build from `main` — no more branch juggling.
+- **Last update:** 2026-07-13
+- **Done (new since last entry):**
+  - **SSRF fix LANDED** (5d85a73, review finding #1): route-level prefix
+    allowlist for `image_url` (fail closed; derived from `SUPABASE_URL` public
+    storage path or `IMAGE_URL_ALLOWED_PREFIX`; checked *before* the quota
+    claim), no-redirect fetch with content-type check + hard 4MB mid-stream
+    cap (`MAX_IMAGE_BYTES`), refunded `IMAGE_REJECTED` SSE error distinct from
+    `LLM_UNAVAILABLE`.
+  - **P1 merged via PR #5** — all three seam increments (model plane split w/
+    Router-owned failover; `retrieval/vector.py`; thin `ask.py` +
+    `orchestrator/pipeline.py`) + `GEMINI_MODEL` env config for the zero-spend
+    phase. `core/llm.py` / `core/rag.py` remain as one-release re-export shims.
+  - **Rule override, recorded:** merged ahead of the live e2e prove-it on the
+    user's direct instruction (2026-07-13). The byte-exact mocked SSE test is
+    the interim equivalence baseline; the prove-it now runs against `main`
+    directly and doubles as P1's live validation.
+- **Next (backend lane):** P2 multi-retrieval (FTS + RRF merge) is the next
+  plan phase — but the **eval harness (P3) is the highest-leverage gap**
+  (nothing can be proven better/worse until it exists). Also open: review
+  finding #2, `GET /v1/sessions/{id}` (small; frontend workaround exists).
+- **Deploy account, note:** with P1 on `main`, the ₹0 deploy needs
+  `GEMINI_MODEL=gemini-2.5-flash` in `--set-env-vars` (see zero-spend
+  guardrails below). `IMAGE_URL_ALLOWED_PREFIX` is optional — it defaults to
+  `SUPABASE_URL` + `/storage/v1/object/public/`; images from any other origin
+  are now rejected with 400 (fail closed: if `SUPABASE_URL` is unset, ALL
+  image questions 400).
+- **Blocking:** none.
 
 ## UI/UX + Infra (`feat/ui-redesign`, `feat/deploy-cloudrun`)
 - **Status:** in progress — UI redesign + owns live-infra/deploy lane
