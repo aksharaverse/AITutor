@@ -9,6 +9,7 @@ from datetime import datetime
 
 import pytest
 
+import app.orchestrator.pipeline as pipeline
 import app.routes.ask as ask_mod
 import app.routes.sessions as sess_mod
 from app.core.llm import Usage
@@ -88,12 +89,14 @@ def _profile(plan="free"):
 
 def _setup(monkey_stream, monkey_retrieve=None):
     pool = FakePool()
+    # ask.py claims quota with this pool, then hands it to pipeline.run; the
+    # pipeline owns retrieval + the LLM stream, so those are patched there.
     ask_mod.get_pool = lambda: pool
-    ask_mod.stream_answer = monkey_stream
+    pipeline.stream_answer = monkey_stream
     if monkey_retrieve is None:
         async def monkey_retrieve(pool_, q, chapter):
             return []
-    ask_mod.rag.retrieve = monkey_retrieve
+    pipeline.vector.retrieve = monkey_retrieve
     return pool
 
 
@@ -122,6 +125,26 @@ def test_happy_path_persists_session_and_trace_once():
     # gate_outcome=show, disconnected=false on the trace insert
     trace_args = next(a for k, a in pool.log if k == "trace_insert")
     assert "show" in trace_args and trace_args[-1] is False
+
+
+def test_sse_frames_are_byte_exact():
+    # The byte-identical guard for the P1 refactor: the wire format the client
+    # sees (token/meta/done framing) must be exactly what shipped pre-P1.
+    async def fake_stream(messages, image_url):
+        yield "AB"
+        yield Usage("deepseek-chat", 5, 2, 0.0001)
+
+    _setup(fake_stream)
+
+    async def run():
+        resp = await ask(AskRequest(text="q"), profile=_profile())
+        return "".join(await _drain(resp))
+
+    body = asyncio.run(run())
+    assert body.startswith('event: token\ndata: {"t": "AB"}\n\n')
+    assert body.endswith("event: done\ndata: {}\n\n")
+    assert body.count("event: token") == 1
+    assert '"thread_id":' in body and '"session_id":' in body   # meta payload
 
 
 def test_zero_token_llm_failure_refunds_and_traces_error():
@@ -159,8 +182,8 @@ def test_disconnect_persists_partial_trace_without_refund():
         await agen.__anext__()      # receive first token
         await agen.aclose()         # simulate mid-stream client disconnect
         # let the detached persist task finish
-        if ask_mod._pending:
-            await asyncio.gather(*list(ask_mod._pending))
+        if pipeline._pending:
+            await asyncio.gather(*list(pipeline._pending))
 
     asyncio.run(run())
     kinds = [k for k, _ in pool.log]
@@ -215,7 +238,7 @@ def test_no_history_loaded_without_thread_id():
 
 def test_long_history_answer_keeps_boxed_line():
     long_answer = ("x" * 5000) + "\n$$\\boxed{v = 3\\,\\text{m/s}}$$"
-    out = ask_mod._truncate_history_answer(long_answer)
+    out = pipeline._truncate_history_answer(long_answer)
     assert len(out) < 1200
     assert "\\boxed{v = 3" in out
 
