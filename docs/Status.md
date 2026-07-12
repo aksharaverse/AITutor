@@ -132,6 +132,38 @@ confirmed by inspection. Summary of the findings:
   institute design-partner conversations (the 90-day kill test); Razorpay/UPI
   vs Stripe for ₹299 India B2C; WhatsApp funnel. Suggest assigning lanes.
 
+## Zero-spend deploy guardrails (2026-07-12, backend account — verified research)
+Decision from the user: **₹0 total spend until the app is properly functional.**
+Verified free-tier facts + required changes, for whoever runs the deploy:
+1. **🔴 Code blocker: `gemini-2.5-pro` is NOT on the Gemini free tier anymore**
+   (2.5 Flash / Flash-Lite are; embeddings `gemini-embedding-001` is). Our
+   Gemini adapter hardcodes 2.5-pro → every vision/failover call fails on a
+   free key. Fix queued on the P1 branch (configurable `GEMINI_MODEL`, default
+   `gemini-2.5-flash` for this phase). Free Flash limits: 10 RPM / 250 req/day,
+   resets midnight PT — plenty for the prove-it.
+2. **Hard cap = two GCP projects.** Gemini API key from an AI Studio project
+   with **no billing attached** (can't be charged — over-limit = 429, not a
+   bill). Cloud Run lives in a separate project with billing + a kill switch:
+   budget → Pub/Sub → function that detaches billing (official pattern:
+   cloud.google.com/billing/docs/how-to/disable-billing-with-notifications;
+   turnkey: github.com/Cyclenerd/poweroff-google-cloud-cap-billing). Budget
+   ~₹500, alerts 50/90/100%.
+3. **`cloudrun.sh` changes for this phase:** `--max-instances 1` (was 4);
+   region `us-central1` (was `asia-south1` — Mumbai is pricing Tier 2, burns
+   the free allowance ~40% faster; free 1 GiB egress is NA-only; flip back at
+   pilot). Trim to ≤6 secrets (Secret Manager free = 6 versions): keep real
+   secrets, move `SUPABASE_URL`/`STRIPE_PRICE_ID`/dummy Stripe to env vars,
+   **skip `DEEPSEEK_API_KEY` entirely** — no DeepSeek spend this phase, all
+   text routes to Flash.
+4. **Privacy line = end of ₹0 phase:** Gemini free tier content is "used to
+   improve" Google products (training); paid tier is excluded. Test questions
+   fine; real students' questions NOT (DPDP). First real student ⇒ attach
+   billing to the Gemini project, flip paid, restore DeepSeek/2.5-pro routing.
+5. **Supabase free projects pause after ~1 week idle** → dead backend. Put a
+   free uptime pinger (UptimeRobot) on `/healthz` every 5 min.
+Cloud Run free tier itself (2M req / 180k vCPU-s / 360k GiB-s per month) fits
+~6k solves/mo — not the constraint; Flash's 250 req/day is.
+
 ## Connections
 - Tracks execution of → [[Opus-Execution-Plan]]
 - Hub → [[Startup-MOC]]
