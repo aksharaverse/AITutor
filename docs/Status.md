@@ -30,20 +30,32 @@ updated: 2026-07-12
 ---
 
 ## Backend (`feat/backend-phase0`)
-- **Status:** in progress — P0.1 done, starting P0.2
+- **Status:** Phase 0 COMPLETE — P0.1 + P0.2 + P0.3 done. Ready for P1
+  (pipeline seams) — but per orchestration call, next real step is getting the
+  MVP running end-to-end (needs Supabase reconnect, see Blocking).
 - **Last update:** 2026-07-12
-- **Done:** P0.1 Pro fair-use monthly cap — `questions_month` /
-  `questions_month_reset_on` columns (additive migration in `schema.sql`),
-  atomic SQL in `routes/ask.py` gates Pro on a 1500/mo IST-calendar-month
-  counter instead of an unconditional bypass, distinct `PRO_FAIR_USE_LIMIT`
-  402 copy, `remaining_month` helper + unit tests in `core/quota.py` /
-  `tests/test_quota.py` (10/10 passing).
-- **Next:** P0.2 trace logging — `traces` table, move `sessions`
-  persistence into `try/finally` around the SSE stream, refund-on-zero-token
-  mid-stream failure.
-- **Blocking:** local test env is missing `asyncpg` (pre-existing, not from
-  this change) — `test_rag.py` fails to collect; full backend deps aren't
-  installed in this worktree.
+- **Done:**
+  - P0.1 Pro fair-use monthly cap (`questions_month*` cols, IST-month atomic
+    SQL, `PRO_FAIR_USE_LIMIT` 402, `remaining_month` + tests).
+  - P0.2 trace logging — `traces` table (per-ask flywheel row); `ask.py`
+    persistence moved into `try/finally` + made idempotent so a mid-stream
+    client disconnect still writes a partial trace (`disconnected=true`);
+    zero-token LLM failure refunds the quota claim (daily + monthly) and
+    traces `gate_outcome=error`; session+trace in one txn; behavioural tests
+    (fake pool) for show / error+refund / disconnect.
+  - P0.3 feedback + history — `POST /v1/sessions/{id}/feedback` (idempotent,
+    404 not 403 on foreign session); `thread_id` on `AskRequest` loads last 4
+    caller-owned turns as `history` (after the cache-stable system prompt),
+    truncation keeps the boxed answer; `thread_id` persisted + returned in
+    `meta`. Suite 23 passing.
+- **Next:** P1 pipeline seams (pure refactor to the `orchestrator/`,
+  `retrieval/`, `models/` layout) — OR deploy the walking skeleton first.
+- **Blocking:** Supabase MCP on this account shows 0 projects — needs re-auth
+  in an interactive session (`/mcp`) before any live DB / migration work. All
+  P0 schema changes are staged in `schema.sql` as additive migrations, ready
+  to apply once reconnected. (Note: `deps.py` builds a `PyJWKClient` at import
+  time and rejects an empty `SUPABASE_URL` — set it, or the app/tests can't
+  import. Worth fixing to lazy-init.)
 
 ## UI/UX (`feat/ui-redesign`)
 - **Status:** in progress — picking up pre-existing uncommitted changes
