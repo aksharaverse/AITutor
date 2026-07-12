@@ -54,6 +54,7 @@ function LiveThread() {
       {s.status !== "streaming" && (
         <Button
           label="Ask another question"
+          variant="ghost"
           onPress={() => {
             s.reset();
             router.replace("/");
@@ -85,7 +86,7 @@ function PastThread({ id }: { id: string }) {
 export default function Thread() {
   const { id } = useLocalSearchParams<{ id: string }>();
   return (
-    <Screen back title="Answer">
+    <Screen back>
       {id === "live" ? <LiveThread /> : <PastThread id={id!} />}
     </Screen>
   );
