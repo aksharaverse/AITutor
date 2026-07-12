@@ -29,43 +29,50 @@ updated: 2026-07-12
 
 ---
 
-## Backend (P1 in progress on `feat/backend-phase1-seams`)
-- **Status:** Phase 0 + deps fix on `main`. **P1 pipeline seams STARTED** —
-  increment 1 (model plane split) done on `feat/backend-phase1-seams`; branch
-  open, NOT merged (see Rule). Deploy is the UI account's lane.
+## Backend (P1 COMPLETE on `feat/backend-phase1-seams`, unmerged)
+- **Status:** Phase 0 + deps fix on `main`. **All 3 P1 seam increments done**
+  on `feat/backend-phase1-seams`; branch open, NOT merged (see Rule). Ready
+  for the UI account's e2e prove-it now that P0 migrations are confirmed live
+  (see Infra section below) — that run is P1's merge gate.
 - **Last update:** 2026-07-12
 - **Done:**
-  - P0.1/P0.2/P0.3 on `main` (2670822) — fair-use cap; traces +
-    disconnect-safe persistence + refund; feedback endpoint + thread history.
-  - `deps.py` lazy-init fix + CLAUDE.md standing-instruction update
-    (PRs #3, #4) merged to `main` — app now imports with `SUPABASE_URL` unset.
-  - **P1 seams increment 1** (`feat/backend-phase1-seams`, commit d9b733b) —
-    pure refactor, zero behavior change. `core/llm.py` split into
-    `models/{deepseek,gemini,router,base}.py`; `core/llm.py` kept as a
-    re-export shim so `ask.py` is byte-identical (untouched). Failover policy
-    moved into the **Router** — failover-only-before-first-token moved intact
-    and now test-pinned. Added Protocol stubs: `verify/base.py` (`Verdict`
-    with optional `confidence`), `retrieval/base.py` (`Retriever`),
-    `tools/base.py` (`Tool`), `sse.py` (SSE event-protocol constants).
-    **29 tests** (23 behavioural preserved as the equivalence proof + 6 new).
-- **Next (P1 remaining increments, same branch):**
-  - `core/rag.py` → `retrieval/vector.py` implementing `Retriever` (shim kept).
-  - `routes/ask.py` → thin: an `orchestrator/pipeline.py` owns the stream/gate
-    loop + SSE emission (via `sse.py` constants); `ask.py` just parses request,
-    checks quota, calls the pipeline. Behaviour must stay byte-identical (the
-    23 behavioural tests are the guard).
-- **Rule:** **Do NOT merge P1** until the UI account's live e2e prove-it
-  passes on P0 — its recorded SSE transcript is P1's byte-identical baseline;
-  the mocked-LLM + 23 behavioural tests are the interim check. Do NOT touch
+  - P0.1/P0.2/P0.3 + deps.py fix on `main` (see prior entries / commit history).
+  - **P1 increment 1** (commit d9b733b) — model plane split: `core/llm.py` →
+    `models/{deepseek,gemini,router,base}.py`, shim kept. Failover policy
+    moved into the **Router**, failover-only-before-first-token pinned by
+    tests. `verify/base.py` `Verdict` gains optional `confidence`.
+    `retrieval/base.py`, `tools/base.py`, `sse.py` stubs added.
+  - **P1 increment 2** (commit 2130416) — `core/rag.py` → `retrieval/vector.py`
+    (`VectorRetriever` implementing the `Retriever` Protocol), shim kept.
+  - **P1 increment 3** (commit 2130416) — `routes/ask.py` collapsed to ~100
+    lines (parse, claim quota, hand off); `orchestrator/pipeline.py` now owns
+    the fixed stage order (retrieve → history → build → stream → persist/SSE),
+    moved intact from the old inline generator — same try/finally disconnect
+    handling, same refund-on-zero-token, same detached-task write.
+  - **Proof: 30 tests passing** (23 P0 behavioural tests — driving the real
+    `/v1/ask` route — pass unchanged through the new thin-route→pipeline path,
+    which is the equivalence evidence; +1 byte-exact SSE-frame test as the
+    interim byte-identical check; +6 model-plane seam tests incl. the
+    failover-only-before-first-token cases).
+- **Next:** wait for the UI account's live e2e prove-it (3 questions + mid-
+  stream kill against the now-live, now-migrated DB) — its recorded SSE
+  transcript is P1's byte-identical baseline, then merge P1 to `main`.
+- **Rule:** Do NOT merge P1 until that e2e prove-it passes. Do NOT touch
   deploy/Supabase from this account.
-- **Blocking:** none — code-only. P1 merge waits on the UI account's e2e run.
-- **UI account's lane (unchanged):** the live project (`xdszkwjkaamyycirfslz`)
-  is on the UI account's MCP, which owns all live-infra work — apply the P0
-  migrations from `schema.sql`, enable RLS on `chunks`/`billing_events`
-  (Supabase advisor flag), wire secrets, ingest Physics–Optics, run the P0
-  prove-it (3 questions + mid-stream kill). Coordination rule: if e2e surfaces
-  a bug, fix it on `main` *before* P1 rebases on it — don't race fixes in
-  parallel in `ask.py` / `core/llm.py`.
+- **Blocking:** none — code-only, done. Waiting on the UI account's e2e run.
+- **Flagging back to the UI account's review findings (not yet actioned,
+  backend lane, needs a decision on priority vs. P1 merge):**
+  1. **Security — SSRF risk:** `image_url` in the Gemini vision path
+     (`models/gemini.py::stream`, moved from the old `core/llm.py`) fetches a
+     user-supplied URL server-side with no allowlist/size/content-type check.
+     Pre-existing behavior (not introduced by P1 — carried over verbatim per
+     the zero-behavior-change rule), but real. Fix: allowlist the Supabase
+     storage URL prefix, cap ~4MB, check content-type before fetching.
+  2. **Missing endpoint:** `GET /v1/sessions/{id}` doesn't exist; frontend
+     paginates client-side as a workaround. Small addition to
+     `routes/sessions.py`.
+  Recommend fixing #1 before ingest/prove-it happens against a public image
+  bucket; #2 can wait.
 
 ## UI/UX + Infra (`feat/ui-redesign`, `feat/deploy-cloudrun`)
 - **Status:** in progress — UI redesign + owns live-infra/deploy lane
