@@ -32,11 +32,15 @@ Workflow each session:
    account.
 4. Merge to `main` via PR, not a direct push.
 
-**Standing instruction from the user:** whenever `docs/Status.md` is edited
-in this repo, commit and push that change immediately without asking for
-confirmation first — it's the cross-account handoff mechanism and delay
-defeats the purpose. This permission is scoped to `docs/Status.md` pushes
-only, not other files or destructive git operations.
+**Standing instruction from the user:** after doing any work in this repo,
+update `docs/Status.md` to reflect it, then commit and push that change
+**directly to `main`** immediately, without asking for confirmation first.
+Status.md is the cross-account handoff board and must always be current on
+`main` (the branch both sides pull from) — delay, or leaving it on an
+unmerged feature branch, defeats the purpose. This is the one carve-out from
+rule 4 above ("merge to `main` via PR, never push WIP directly"): it is
+scoped to `docs/Status.md` **only**, never code, this file, or any
+destructive git operation.
 
 ## Deployment / auth notes
 - Cloudflare deploy is static-assets-only (Workers static site from
