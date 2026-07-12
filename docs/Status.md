@@ -30,12 +30,20 @@ updated: 2026-07-12
 ---
 
 ## Backend (`feat/backend-phase0`)
-- **Status:** not started
-- **Last update:** —
-- **Done:**
-- **Next:** Phase 0 of [[Opus-Execution-Plan]] — P0.1 Pro fair-use cap, P0.2
-  trace logging, P0.3 feedback + history wiring.
-- **Blocking:**
+- **Status:** in progress — P0.1 done, starting P0.2
+- **Last update:** 2026-07-12
+- **Done:** P0.1 Pro fair-use monthly cap — `questions_month` /
+  `questions_month_reset_on` columns (additive migration in `schema.sql`),
+  atomic SQL in `routes/ask.py` gates Pro on a 1500/mo IST-calendar-month
+  counter instead of an unconditional bypass, distinct `PRO_FAIR_USE_LIMIT`
+  402 copy, `remaining_month` helper + unit tests in `core/quota.py` /
+  `tests/test_quota.py` (10/10 passing).
+- **Next:** P0.2 trace logging — `traces` table, move `sessions`
+  persistence into `try/finally` around the SSE stream, refund-on-zero-token
+  mid-stream failure.
+- **Blocking:** local test env is missing `asyncpg` (pre-existing, not from
+  this change) — `test_rag.py` fails to collect; full backend deps aren't
+  installed in this worktree.
 
 ## UI/UX (`feat/ui-redesign`)
 - **Status:** in progress — picking up pre-existing uncommitted changes
