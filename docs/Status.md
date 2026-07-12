@@ -47,6 +47,16 @@ updated: 2026-07-12
 - **Next:** review + commit the above, continue redesign pass
 - **Blocking:**
 
+## Decisions (cross-account, both sides honor)
+- **2026-07-12 — Infra locked:** backend host is **Google Cloud Run**
+  (`asia-south1`/Mumbai, scale-to-zero pre-launch, `min-instances=1` at pilot).
+  Railway/Fly/Render dropped. Docs (`CLAUDE.md`, MVP-Architecture, backend
+  README, Codebase, Dev-Plan) updated to match.
+- **2026-07-12 — Stay on Supabase, not Firebase:** Google OAuth is brokered
+  through Supabase; pgvector, atomic-SQL quotas, the `traces` table, and
+  Phase-2 Postgres FTS are all load-bearing on Postgres. Firebase would force
+  a rewrite for zero auth gain.
+
 ## Connections
 - Tracks execution of → [[Opus-Execution-Plan]]
 - Hub → [[Startup-MOC]]
