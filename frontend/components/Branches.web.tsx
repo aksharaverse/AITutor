@@ -1,12 +1,26 @@
-// Generative branch art (à la antfu.me) — web only. A canvas slowly grows
-// two hairline branches in from opposite corners, then stops. Native resolves
-// Branches.tsx (null) via Metro platform extensions.
+// Generative math-lattice art — adapted from Anthony Fu's ArtPlum
+// (github.com/antfu/antfu.me, src/components/ArtPlum.vue, MIT). The growth
+// engine is his: a queue of draw steps executed ~40fps, each with a 50%
+// chance to defer one frame so growth fronts stagger, seeds entering from
+// the viewport edges, culled 100px out of bounds. The drawing rule is
+// deliberately different: antfu bends every segment by a random ±15°, which
+// reads as a plum tree; here paths run dead straight and occasionally fork
+// at exactly ±60°, so every line lies on a triangular lattice and the result
+// reads as geometry — right for a JEE/NEET product. Tuned against rendered
+// output: fixed 10px segments, per-tree budget so all four corners grow.
+// Web only — native resolves Branches.tsx (null).
 
 import React, { useEffect, useRef } from "react";
 
 import { useTheme } from "@/lib/theme";
 
-type Step = { x: number; y: number; angle: number; depth: number };
+const R90 = Math.PI / 2;
+const R180 = Math.PI;
+const ANGLE = Math.PI / 3; // strict 60° forks — the geometry knob
+const SEGMENT = 10; // fixed segment length keeps vertices on the lattice
+const YOUNG = 40; // segments during which a tree always continues + forks more
+const TREE_BUDGET = 1100; // per-seed segment cap so no corner starves another
+const FPS = 40;
 
 export function Branches() {
   const t = useTheme();
@@ -28,38 +42,61 @@ export function Branches() {
     ctx.lineWidth = 1;
     ctx.strokeStyle = t.dot;
 
-    const r = (n = 1) => Math.random() * n;
-    let steps: Step[] = [
-      { x: w * 0.92, y: -5, angle: Math.PI / 2 + r(0.4) - 0.2, depth: 0 },
-      { x: w * 0.08, y: h + 5, angle: -Math.PI / 2 + r(0.4) - 0.2, depth: 0 },
-    ];
-    let total = 0;
+    const { random } = Math;
+    let steps: Array<() => void> = [];
+    let prevSteps: Array<() => void> = [];
     let raf = 0;
+    let lastTime = performance.now();
+    const interval = 1000 / FPS;
 
-    function grow(s: Step): Step[] {
-      if (!ctx) return [];
-      const nx = s.x + Math.cos(s.angle) * (6 + r(4));
-      const ny = s.y + Math.sin(s.angle) * (6 + r(4));
+    const step = (x: number, y: number, rad: number, counter: { value: number }) => {
+      counter.value += 1;
+      const nx = x + SEGMENT * Math.cos(rad);
+      const ny = y + SEGMENT * Math.sin(rad);
+
       ctx.beginPath();
-      ctx.moveTo(s.x, s.y);
+      ctx.moveTo(x, y);
       ctx.lineTo(nx, ny);
       ctx.stroke();
-      total++;
-      const next: Step[] = [];
-      // Young branches always fork so each tree takes shape; older ones fork
-      // at 50% each — a critical process that dies out on its own.
-      if (s.depth < 5 || r() < 0.5)
-        next.push({ x: nx, y: ny, angle: s.angle + r(0.4) - 0.06, depth: s.depth + 1 });
-      if (s.depth < 5 || r() < 0.5)
-        next.push({ x: nx, y: ny, angle: s.angle - r(0.4) + 0.06, depth: s.depth + 1 });
-      return next;
-    }
 
-    function frame() {
-      const batch = steps.splice(0, 10);
-      for (const s of batch) steps.push(...grow(s));
-      if (steps.length > 0 && total < 700) raf = requestAnimationFrame(frame);
-    }
+      if (counter.value > TREE_BUDGET) return;
+      if (nx < -100 || nx > w + 100 || ny < -100 || ny > h + 100) return;
+
+      const young = counter.value < YOUNG;
+      const forkRate = young ? 0.15 : 0.08;
+      if (young || random() < 0.88) steps.push(() => step(nx, ny, rad, counter));
+      if (random() < forkRate) steps.push(() => step(nx, ny, rad + ANGLE, counter));
+      if (random() < forkRate) steps.push(() => step(nx, ny, rad - ANGLE, counter));
+    };
+
+    const frame = () => {
+      raf = requestAnimationFrame(frame);
+      if (performance.now() - lastTime < interval) return;
+
+      prevSteps = steps;
+      steps = [];
+      lastTime = performance.now();
+
+      if (!prevSteps.length) {
+        cancelAnimationFrame(raf);
+        return;
+      }
+
+      prevSteps.forEach((fn) => {
+        if (random() < 0.5) steps.push(fn);
+        else fn();
+      });
+    };
+
+    const randomMiddle = () => random() * 0.6 + 0.2;
+    steps = [
+      () => step(randomMiddle() * w, -5, R90, { value: 0 }),
+      () => step(randomMiddle() * w, h + 5, -R90, { value: 0 }),
+      () => step(-5, randomMiddle() * h, 0, { value: 0 }),
+      () => step(w + 5, randomMiddle() * h, R180, { value: 0 }),
+    ];
+    if (w < 500) steps = steps.slice(0, 2);
+
     raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
   }, [t.dot]);
@@ -73,6 +110,9 @@ export function Branches() {
         width: "100%",
         height: "100%",
         pointerEvents: "none",
+        // keep the middle calm — the lattice lives at the edges
+        maskImage: "radial-gradient(circle, transparent, black)",
+        WebkitMaskImage: "radial-gradient(circle, transparent, black)",
       }}
     />
   );

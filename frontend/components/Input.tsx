@@ -24,7 +24,7 @@ export function Input(props: TextInputProps) {
           color: t.fg,
           backgroundColor: t.inputBg,
           borderWidth: 1,
-          borderColor: focused ? t.muted : t.border,
+          borderColor: focused ? t.fg : t.border,
           borderRadius: 10,
           padding: space.m,
         },
