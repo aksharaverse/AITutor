@@ -99,7 +99,13 @@ updated: 2026-07-12
   (account/auth can't be done by the agent) — script is ready to run.
 
 ## 3-pass repo review (2026-07-12, UI account — full-branch audit)
-Findings both sides should see; details in the session, actionable bits here.
+Findings both sides should see. **Detailed write-ups now in the repo:**
+combined → [[2026-07-12-review-combined]] (`docs/Reviews/`, on `main`);
+per-lane → [[2026-07-12-review-ui-account]] (on `feat/ui-redesign`) and
+[[2026-07-12-review-backend-account]] (on `feat/backend-phase0`).
+Architecture re-validated by execution: `main` 23/23 tests, seams 29/29
+in a clean worktree; Google OAuth wiring and Cloud Run deploy config
+confirmed by inspection. Summary of the findings:
 - **Frontend lags backend by a phase:** P0.3 is "done" on `main` but the app
   never sends `thread_id` (no follow-up questions) and has **no feedback UI**
   (👍/👎 endpoint unused → the data flywheel isn't being fed). These are the
