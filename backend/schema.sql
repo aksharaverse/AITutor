@@ -60,3 +60,9 @@ create policy "own sessions" on sessions
 
 -- Storage: create a public bucket named `question-images` in the Supabase
 -- dashboard; the app uploads photos there and passes the public URL to /v1/ask.
+
+-- Migration (P0.1): Pro fair-use monthly cap (additive, run once).
+alter table profiles add column if not exists
+  questions_month int not null default 0;
+alter table profiles add column if not exists
+  questions_month_reset_on date not null default current_date;
