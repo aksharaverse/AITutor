@@ -1,6 +1,6 @@
 ---
 tags: [type/status, domain/startup]
-updated: 2026-07-12
+updated: 2026-07-15
 ---
 # 🛰️ Status — cross-account orchestration board
 
@@ -60,6 +60,30 @@ updated: 2026-07-12
   are now rejected with 400 (fail closed: if `SUPABASE_URL` is unset, ALL
   image questions 400).
 - **Blocking:** none.
+
+## Adaptive-loop architecture — NEW lane proposal (2026-07-15, UI account)
+- **Status:** design doc ready for review —
+  **[PR #6](https://github.com/aksharaverse/AITutor/pull/6)** adds
+  [[Adaptive-Loop-Architecture]] (`docs/Architecture/`). Docs only, no code.
+- **What it is:** the 2026-07-15 brainstorm (JEPA papers + Squirrel AI's
+  closed loop + Cursor's loop→data→model sequence) compressed into a design
+  on the existing stack: closed practice loop where the LLM is a *selectively
+  invoked decoder* — adaptive decisions (next item, mastery, review
+  scheduling) are pure SQL ≈ ₹0, fitting the zero-spend phase. Annotated
+  research reading list included (KT/Elo/JEPA/RLVR/public datasets).
+- **Key calls:** Elo state estimator v1 behind a `StateEstimator` Protocol
+  (resolves [[Student-Model]]'s open BKT-vs-IRT-vs-Elo decision); additive
+  migrations (`knowledge_components`, `kc_edges`, `items`, `attempts`,
+  `student_kc_state`); `GET /v1/next` + `POST /v1/attempts`; phases A–D with
+  gates (A log+graph → B Elo loop → C Student-JEPA, gated ≥100k attempts →
+  D RLVR own model, gated on funding). Golden-set problems double as items
+  (curate once, use twice with P3).
+- **Suggested lane split (needs both sides' ack):** backend account —
+  Phase A/B server side (migrations + `adaptive/` + `routes/practice.py`,
+  meshes after P1, parallel to P2/P3); UI account — practice screen + the
+  missing feedback UI (same screen). Phase C is a research lane.
+- **Blocking:** none — but don't start Phase B until PR #6 is reviewed/merged
+  and the item-bank sourcing (~150 items for one chapter) has an owner.
 
 ## UI/UX + Infra (`feat/ui-redesign`, `feat/deploy-cloudrun`)
 - **Status:** in progress — UI redesign + owns live-infra/deploy lane
