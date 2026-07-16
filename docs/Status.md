@@ -61,12 +61,47 @@ updated: 2026-07-16
   image questions 400).
 - **Blocking:** none.
 
-## Adaptive-loop — **A.0 MERGED TO MAIN; next = A.1 migrations** (2026-07-16)
-- **Status:** design + A.0 all on `main` — PRs #6, #7 and **[PR #8](https://github.com/aksharaverse/AITutor/pull/8)
-  (merged, `c317331`)**. **115 tests pass on merged main** (the 38 existing ones
-  untouched + 77 new). No routes, no new deps, no behavior change —
-  `routes/`, `orchestrator/`, `models/`, `core/` and `requirements.txt` are all
-  untouched. PR #8 also carried the ADRs and the migrations refactor below.
+## Adaptive-loop — **A.0 merged; A.1 in [PR #9](https://github.com/aksharaverse/AITutor/pull/9); next = A.2 seed** (2026-07-16)
+- **Status:** design + A.0 on `main` (PRs #6, #7, **#8 merged `c317331`**).
+  **A.1 = [PR #9](https://github.com/aksharaverse/AITutor/pull/9), open** —
+  the adaptive schema as one immutable migration + migration-hygiene tests.
+  **126 tests pass** (115 + 11). No app code touched in either.
+- **🔴 A.1's migration has NOT been executed against any database.** Docker's
+  daemon was down on this machine, so no fresh-DB apply was possible — it is
+  *reviewed, not proven*. Someone with Docker or the Supabase CLI must run
+  `supabase db reset` (or psql against `pgvector/pgvector:pg16` with
+  `auth.users` stubbed — command in `backend/tests/test_migration_hygiene.py`'s
+  docstring) **before** it goes near live. That plus the ledger reconciliation
+  are the two gates on `db push`.
+- **🔴 There is NO CI in this repo** (`.github/workflows/` does not exist). The
+  126 tests only ever run on whoever's laptop remembers to run them. This is now
+  the biggest infrastructure gap: it's also where the schema-drift check belongs
+  (migration → fresh DB → introspect → compare against a snapshot), which would
+  have caught the drift ADR-011 was written about. **Suggest the infra lane take
+  this next** — it's small (pytest + a postgres service container) and it
+  unblocks trusting any of the above.
+- **A.1 deviated from the design in 3 ways, all found by implementing it** —
+  backend lane should know before writing B.1:
+  1. **`item_state` is a new table; `items.difficulty` no longer exists**
+     ([[ADR-012]]). Content and derived state can't share a table — A.3's
+     `content_hash` re-ingest would clobber learned difficulty, and `rebuild()`
+     would write to the content table.
+  2. **`student_kc_state` has `p_correct`/`confidence`/`estimator` columns**
+     (§3.2 omitted them). Without a stored `p_correct` the policy would have to
+     recompute it from `rating` with Elo's formula in SQL — hard-coding the
+     estimator into the policy, exactly what [[ADR-005]] forbids. The schema has
+     to honour the ADR too, not just the Python.
+  3. **`attempts.correct` is NULLABLE on purpose** — null = "not gradeable" = a
+     Verdict of INAPPLICABLE. Don't default it to false.
+  Also: `kc_edges` blocks self-loops but **cannot** block longer cycles (A→B→A)
+  — Postgres can't express it. **A.2's seed ingest must check reachability.**
+- **🆕 Engineering metrics to instrument alongside the product KPIs**
+  ([[Adaptive-Loop-Architecture]] §4.1): `rebuild()` wall time per student ·
+  `/v1/next` p50/p95 (the "one SQL query" claim, measured) · event-log growth
+  per student/day · attempts-per-KC-to-mastery (tells us if KC granularity is
+  wrong, measured instead of argued) · `p_correct` calibration error (ECE) ·
+  item-state coverage. Each is a query, not a project; land each with the phase
+  that makes it measurable (B.1/B.2).
 - **What A.0 landed:** `app/adaptive/contracts.py` (KnowledgeState, KCMastery,
   AttemptEvent, StateDelta, NextRequest, NextDecision + StateEstimator/Policy
   Protocols) · `app/verify/registry.py` (dispatch + aggregation) ·
