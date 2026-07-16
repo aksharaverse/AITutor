@@ -61,19 +61,18 @@ updated: 2026-07-16
   image questions 400).
 - **Blocking:** none.
 
-## Adaptive-loop — **A.0 SHIPPED (PR #8, open); next = A.1 migrations** (2026-07-16)
-- **Status:** design merged (PRs #6, #7). **Phase A.0 is code-complete in
-  [PR #8](https://github.com/aksharaverse/AITutor/pull/8)**
-  (`feat/adaptive-a0-contracts`), awaiting review. **115 tests pass** (the 38
-  existing ones untouched + 77 new). No migrations, no routes, no new deps, no
-  behavior change — `routes/`, `orchestrator/`, `models/`, `core/` and
-  `requirements.txt` are all untouched.
+## Adaptive-loop — **A.0 MERGED TO MAIN; next = A.1 migrations** (2026-07-16)
+- **Status:** design + A.0 all on `main` — PRs #6, #7 and **[PR #8](https://github.com/aksharaverse/AITutor/pull/8)
+  (merged, `c317331`)**. **115 tests pass on merged main** (the 38 existing ones
+  untouched + 77 new). No routes, no new deps, no behavior change —
+  `routes/`, `orchestrator/`, `models/`, `core/` and `requirements.txt` are all
+  untouched. PR #8 also carried the ADRs and the migrations refactor below.
 - **What A.0 landed:** `app/adaptive/contracts.py` (KnowledgeState, KCMastery,
   AttemptEvent, StateDelta, NextRequest, NextDecision + StateEstimator/Policy
   Protocols) · `app/verify/registry.py` (dispatch + aggregation) ·
   `app/verify/checkers/gold.py` (first real checker) · widened
   `app/verify/base.py`.
-- **🆕 ADRs now exist — `docs/Decisions/` (ADR-001…010), also in PR #8.** Tiny
+- **🆕 ADRs now exist — `docs/Decisions/` (ADR-001…011), on `main`.** Tiny
   records (Decision / Context / Reason / Consequences, ~35 lines) of the calls
   that look weird without their reason. **Both sides: read the ADR before
   "fixing" something odd, and add one when you make a call a future reader would
@@ -136,6 +135,32 @@ updated: 2026-07-16
   gates (A log+graph → B Elo loop → C Student-JEPA, gated ≥100k attempts →
   D RLVR own model, gated on funding). Golden-set problems double as items
   (curate once, use twice with P3).
+- **🆕🔴 SCHEMA WORKFLOW CHANGED — read before writing any SQL ([[ADR-011]], on
+  `main`).** `backend/schema.sql` is **no longer the source of truth and must not
+  be run**; it is now a pointer file. The schema lives in immutable, timestamped
+  migrations under **`supabase/migrations/`** (baseline
+  `20260716120000_baseline_p0_p1.sql` = the old schema.sql, squashed — verified
+  lossless by object-set diff, but **not yet executed anywhere**). Rules,
+  naming, apply flow → `supabase/README.md`.
+  - *Why:* schema.sql was 16 `if not exists` guards pasted into the SQL editor
+    by hand — guards that **silently no-op on drift**, so a diverged live DB
+    reports "ran fine". Meanwhile the MCP wrote a real migration ledger into the
+    live project on 2026-07-12 that this repo has no copy of. Two histories,
+    neither aware of the other, and the authoritative one wasn't in git.
+  - *New work:* `supabase migration new <name>` → one file → review → merge →
+    `supabase db push`. Don't append to schema.sql. Don't use `if not exists` in
+    new migrations. Prove it with a local `supabase db reset` (free, Docker) —
+    that's the test that a migration builds an empty DB, not just your laptop.
+- **🔴🔴 INFRA ACCOUNT — one-time reconciliation; it BLOCKS A.1's *push*.**
+  The live project's ledger (`xdszkwjkaamyycirfslz`) and `supabase/migrations/`
+  disagree, and **nobody currently knows what the remote ledger contains** — the
+  Supabase MCP is disconnected from the agent side, so this needs your
+  authenticated CLI (same class of blocker as gcloud). **Do not `supabase db
+  push` against live until done.** Steps in `supabase/README.md` § "Reconciling
+  the live project": `supabase link` → `supabase migration list` → **post that
+  output here** → `migration repair` (ledger-only, does not touch tables) →
+  verify → then push. **Writing A.1's migration file is NOT blocked** — only
+  applying it to live is.
 - **Suggested lane split (needs both sides' ack):** backend account —
   Phase A/B server side (migrations + `adaptive/` + `routes/practice.py`,
   meshes after P1, parallel to P2/P3); UI account — practice screen + the
