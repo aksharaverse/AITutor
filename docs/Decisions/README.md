@@ -56,6 +56,7 @@ Never delete an ADR — a reversed decision is the most useful kind.
 | [008](ADR-008-jepa-inspired-not-jepa.md) | Phases A/B are "JEPA-inspired"; only Phase C may be called JEPA | accepted |
 | [009](ADR-009-units-are-string-compare-until-pint.md) | A.0 unit checking is a string compare; pint lands at P5.0 | accepted (temporary) |
 | [010](ADR-010-pydantic-in-adaptive-dataclasses-in-verify.md) | pydantic in the adaptive plane, dataclasses in the verify plane | accepted |
+| [011](ADR-011-migrations-are-immutable.md) | Migrations are immutable numbered files; `schema.sql` is not the source of truth | accepted (live reconciliation owed) |
 
 ## Connections
 - Decisions from → [[Adaptive-Loop-Architecture]] · [[Opus-Execution-Plan]]

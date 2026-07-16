@@ -244,7 +244,13 @@ selection, mastery updates, review scheduling — is SQL. Concretely: *solved
 correctly → update mastery → choose next item → done*, with no LLM call; and
 *concept forgotten → decay mastery → schedule review → done*, likewise.
 
-### 3.2 Data model (additive migrations, same style as P0)
+### 3.2 Data model (additive migrations)
+
+> **Delivery, per [[ADR-011]]:** these land as **one immutable, timestamped file
+> in `supabase/migrations/`** (A.1) — *not* appended to `backend/schema.sql`,
+> which is now a pointer. The `if not exists` guards below are stylistic
+> leftovers from the old file and should be **dropped** when A.1 writes the real
+> migration: a guard that silently no-ops is how drift hides.
 
 ```sql
 -- Migration (A.1): knowledge graph. IDs are human-readable paths so content
@@ -632,7 +638,7 @@ prove the dispatch against — a Protocol with no implementor is a guess.
 | PR | Contents | Gate |
 |---|---|---|
 | **A.0** | contracts + registry + gold checker (above) | none — start now |
-| **A.1** | migrations A.1–A.4 in `schema.sql` + a `docs/Build/` KC-tagging guide; RLS mirroring `sessions` | A.0 merged |
+| **A.1** | migrations A.1–A.4 as **one immutable file** in `supabase/migrations/` ([[ADR-011]] — *not* appended to `schema.sql`, which is now a pointer) + a `docs/Build/` KC-tagging guide; RLS mirroring `sessions`; verified with a local `supabase db reset` | A.0 merged **+ the live-ledger reconciliation in `supabase/README.md`** (infra account; `db push` is unsafe until then) |
 | **A.2** | KC graph seed for ONE chapter (~50 KCs + prereq edges) as a reviewable YAML/CSV → ingest CLI (`app/ingest/` already exists) | A.1 |
 | **A.3** | item-bank ingest: `items` rows w/ `answer_gold`; **tag the P3 golden problems with `kc_id`** (curate once, use twice) | A.2 + item sourcing owner assigned |
 | **B.1** | `EloEstimator` implementing `StateEstimator`; `rebuild()` replay from `attempts`; unit tests vs a hand-computed Elo trace | A.1 |
