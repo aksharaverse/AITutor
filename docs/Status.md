@@ -61,22 +61,47 @@ updated: 2026-07-16
   image questions 400).
 - **Blocking:** none.
 
-## Adaptive-loop architecture — **DESIGN DONE, A.0 IS BUILDABLE** (2026-07-16)
-- **Status:** [[Adaptive-Loop-Architecture]] merged to `main` via
-  **[PR #6](https://github.com/aksharaverse/AITutor/pull/6)**; review
-  refinements + the implementation-start section are in
-  **[PR #7](https://github.com/aksharaverse/AITutor/pull/7)** (open — merge
-  this before starting A.0, it's what defines A.0). Docs only, no code yet.
-- **👉 Next physical step = Phase A.0** (§7 of the doc): one PR, ~1 day, ₹0 —
-  `adaptive/contracts.py` + `verify/contracts.py` + `verify/registry.py` +
-  `verify/checkers/gold.py` + tests. **No migrations, no routes, no deps, no
-  behavior change** — cannot touch `/v1/ask`; the 38 tests stay green. Then
-  A.1 migrations → A.2 KC graph seed → A.3 item bank → B.1 Elo → B.2 routes →
-  B.3 UI (order + gates in §7).
+## Adaptive-loop — **A.0 SHIPPED (PR #8, open); next = A.1 migrations** (2026-07-16)
+- **Status:** design merged (PRs #6, #7). **Phase A.0 is code-complete in
+  [PR #8](https://github.com/aksharaverse/AITutor/pull/8)**
+  (`feat/adaptive-a0-contracts`), awaiting review. **115 tests pass** (the 38
+  existing ones untouched + 77 new). No migrations, no routes, no new deps, no
+  behavior change — `routes/`, `orchestrator/`, `models/`, `core/` and
+  `requirements.txt` are all untouched.
+- **What A.0 landed:** `app/adaptive/contracts.py` (KnowledgeState, KCMastery,
+  AttemptEvent, StateDelta, NextRequest, NextDecision + StateEstimator/Policy
+  Protocols) · `app/verify/registry.py` (dispatch + aggregation) ·
+  `app/verify/checkers/gold.py` (first real checker) · widened
+  `app/verify/base.py`.
+- **🔴 Backend account — two corrections that change what you'd have written:**
+  1. **`verify/base.py` was widened in place; there is NO `verify/contracts.py`**
+     (the doc's §7 originally said to create one). P1 had already locked
+     `Verdict`/`Outcome`/`Verifier` in `base.py`, so a second contracts module
+     would have meant two competing `Verdict` types. The widening is additive
+     (`+Outcome.TIMEOUT`, `+Verdict.checker`, `+Claim`,
+     `+name/domain/applies_to`) and P1's field names are kept — so **your P5
+     checkers implement `Verifier` from `app.verify.base` and register on
+     `Registry`**. §7 of the doc records this.
+  2. **`StateEstimator.observe(ev, prior)`** takes the prior mastery as an
+     argument (the doc's sketch said `observe(ev)`, which contradicted its own
+     purity rule — Elo needs the current rating and a pure fn can't fetch it).
+     B.1's EloEstimator implements that signature; the caller passes the row it
+     already holds. `prior=None` = cold start.
+- **Aggregation precedence is now `FAIL > TIMEOUT > PASS > INAPPLICABLE`**
+  (pinned by a truth-table test). TIMEOUT outranks PASS deliberately: "3 passed,
+  1 timed out" must abstain, not badge — directly relevant to P5's gate. A
+  checker that raises degrades to INAPPLICABLE, never FAIL, and is logged.
+- **Known, accepted A.0 limitation:** the gold checker's unit check is a
+  normalized *string* compare, so `N/kg` != `m/s^2` (a false negative). Pinned
+  by `test_dimensionally_equivalent_units_fail_until_pint_lands` — that test is
+  **meant to fail and be deleted** when `pint` lands at P5.0. Use it to grade
+  curated items; don't badge a student's own physics work on it before P5.
 - **Why contracts first:** implementations churn (Elo → Student-JEPA; one
   checker → six), contracts don't. `KnowledgeState`, `Verdict`, and the
-  `p_correct`-as-portable-unit convention get frozen before anything is built
+  `p_correct`-as-portable-unit convention are frozen before anything is built
   against them. Same discipline as P1's seams.
+- **Next:** A.1 migrations → A.2 KC graph seed → A.3 item bank → B.1 Elo →
+  B.2 routes → B.3 UI (order + gates in §7).
 - **Review outcome (2026-07-16), things both sides should know:**
   - Phases A/B are **"JEPA-inspired"**, NOT JEPA — the name is only earned in
     Phase C, when an encoder actually predicts future latent states. Please use
