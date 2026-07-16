@@ -61,18 +61,38 @@ updated: 2026-07-16
   image questions 400).
 - **Blocking:** none.
 
-## Adaptive-loop — **A.0 merged; A.1 in [PR #9](https://github.com/aksharaverse/AITutor/pull/9); next = A.2 seed** (2026-07-16)
-- **Status:** design + A.0 on `main` (PRs #6, #7, **#8 merged `c317331`**).
-  **A.1 = [PR #9](https://github.com/aksharaverse/AITutor/pull/9), open** —
-  the adaptive schema as one immutable migration + migration-hygiene tests.
-  **126 tests pass** (115 + 11). No app code touched in either.
-- **🔴 A.1's migration has NOT been executed against any database.** Docker's
-  daemon was down on this machine, so no fresh-DB apply was possible — it is
-  *reviewed, not proven*. Someone with Docker or the Supabase CLI must run
-  `supabase db reset` (or psql against `pgvector/pgvector:pg16` with
-  `auth.users` stubbed — command in `backend/tests/test_migration_hygiene.py`'s
-  docstring) **before** it goes near live. That plus the ledger reconciliation
-  are the two gates on `db push`.
+## Adaptive-loop — **A.0/A.1 merged; A.2 in [PR #10](https://github.com/aksharaverse/AITutor/pull/10); next = A.3 items** (2026-07-16)
+- **Status:** design + A.0 + A.1 on `main` (PRs #6, #7, **#8 `c317331`**,
+  **#9 `fb90092`**). **A.2 = [PR #10](https://github.com/aksharaverse/AITutor/pull/10), open**
+  — the Mechanics KC graph + a validating ingest tool. **192 tests pass**
+  (126 + 66). No routes/orchestrator/models touched by any of them.
+- **A.2 shipped:** `content/kc/phy_mechanics.yaml` — **57 KCs, 86 edges, longest
+  chain 10, 1 component, 0 cycles, 0 isolated** · `app/ingest/kc_graph.py` (pure:
+  parse/validate/metrics/topo/dot) · `app/ingest/kc.py` (`--check` = no DB;
+  `--dot` = Graphviz; upsert is one transaction, never partial).
+  `requirements.txt += PyYAML` (app/ingest ships in the container, so it's a real
+  runtime dep). New: [[ADR-013]] (telemetry sets KC granularity, not a target
+  number — 57 is coherent, not aimed at) and [[ADR-014]] (the ingest tool is the
+  graph's integrity boundary, because Postgres cannot express acyclicity).
+- **🔴🔴 CONTENT LANE — the chapter string is now a contract.** `chunks.chapter`
+  is `PHY::optics::12` and retrieval filters on **exact string equality**
+  (`where chapter = $2`). A KC with `chapter: Mechanics` matches **zero chunks**,
+  so "explain this item" would silently retrieve nothing and look like a bad
+  prompt. The seed declares **`PHY::mechanics::11`** and the validator enforces
+  the format. **Whoever RAG-ingests mechanics notes must use exactly:**
+  `python -m app.ingest.cli notes/mechanics.md --subject PHY --chapter PHY::mechanics::11`
+  (the trailing number follows the existing `::12` convention = NCERT class,
+  inferred — if that's wrong, say so and it's a one-line YAML fix, but both sides
+  must match).
+- **🔴 A.1's migration (now on `main`) has STILL NOT been executed against any
+  database.** Docker's daemon was down on this machine, so no fresh-DB apply was
+  possible — it is *reviewed, not proven*, and merging didn't change that.
+  Someone with Docker or the Supabase CLI must run `supabase db reset` (or psql
+  against `pgvector/pgvector:pg16` with `auth.users` stubbed — command in
+  `backend/tests/test_migration_hygiene.py`'s docstring) **before** it goes near
+  live. That plus the ledger reconciliation are the two gates on `db push`.
+  A.2's ingest tool cannot be run against a real DB until this is done either
+  (`--check` works with no DB and is what's been exercised).
 - **🔴 There is NO CI in this repo** (`.github/workflows/` does not exist). The
   126 tests only ever run on whoever's laptop remembers to run them. This is now
   the biggest infrastructure gap: it's also where the schema-drift check belongs
@@ -196,6 +216,16 @@ updated: 2026-07-16
   output here** → `migration repair` (ledger-only, does not touch tables) →
   verify → then push. **Writing A.1's migration file is NOT blocked** — only
   applying it to live is.
+- **🔴 A.3 (~300 items for Mechanics) IS NOW THE CRITICAL PATH and still has no
+  owner.** A.0/A.1/A.2 are done; the loop has a graph and nowhere to get
+  questions. This is curation hours, not code — the only non-code thing between
+  us and a measurable D7. Sourcing = past JEE papers + NCERT exemplar (public;
+  same attribution rules as the P3 golden set), tagged with `kc_id` from
+  `content/kc/phy_mechanics.yaml` and given `answer_gold` in the shape
+  `GoldAnswerChecker` already reads: `{value, unit}` or `{choices: [...]}`.
+  ~300 = 57 KCs x ~5-6 items for a difficulty ladder; **do not build 5,000 before
+  D7 is measured** (inventory before demand = the Byju's/Doubtnut trap already in
+  the Opus plan's lesson table).
 - **Suggested lane split (needs both sides' ack):** backend account —
   Phase A/B server side (migrations + `adaptive/` + `routes/practice.py`,
   meshes after P1, parallel to P2/P3); UI account — practice screen + the
