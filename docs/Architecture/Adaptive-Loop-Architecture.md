@@ -1,7 +1,7 @@
 ---
 tags: [type/architecture, domain/startup, startup/architecture, decision/anchor]
 updated: 2026-07-16
-status: ACTIVE — reviewed 2026-07-16; §7 is the implementation start (Phase A.0)
+status: ACTIVE — A.0 shipped 2026-07-16 (PR #8); next step is A.1 (migrations)
 ---
 # 🔁 Adaptive Loop — research, architecture, roadmap
 
@@ -244,7 +244,13 @@ selection, mastery updates, review scheduling — is SQL. Concretely: *solved
 correctly → update mastery → choose next item → done*, with no LLM call; and
 *concept forgotten → decay mastery → schedule review → done*, likewise.
 
-### 3.2 Data model (additive migrations, same style as P0)
+### 3.2 Data model (additive migrations)
+
+> **Delivery, per [[ADR-011]]:** these land as **one immutable, timestamped file
+> in `supabase/migrations/`** (A.1) — *not* appended to `backend/schema.sql`,
+> which is now a pointer. The `if not exists` guards below are stylistic
+> leftovers from the old file and should be **dropped** when A.1 writes the real
+> migration: a guard that silently no-ops is how drift hides.
 
 ```sql
 -- Migration (A.1): knowledge graph. IDs are human-readable paths so content
@@ -364,9 +370,12 @@ class KCMastery(BaseModel):
 
 class StateEstimator(Protocol):           # Elo v1, Student-JEPA later
     name: str
-    def observe(self, ev: AttemptEvent) -> StateDelta: ...   # pure; caller persists
-    async def state(self, user_id: UUID, kcs: list[str]) -> KnowledgeState: ...
-    async def rebuild(self, user_id: UUID) -> None: ...       # replay log → cache
+    # `prior` is passed IN, not looked up: Elo needs the current rating and a
+    # pure function can't fetch it. None = cold start. (A.0 correction 2, §7.)
+    def observe(self, ev: AttemptEvent,
+                prior: KCMastery | None) -> StateDelta: ...   # pure; caller persists
+    async def state(self, pool, user_id: UUID, kcs: list[str]) -> KnowledgeState: ...
+    async def rebuild(self, pool, user_id: UUID) -> None: ...  # replay log → cache
 
 class Policy(Protocol):                   # next-item selection
     async def next(self, req: NextRequest) -> NextDecision: ...
@@ -378,8 +387,9 @@ class Verifier(Protocol):                 # ONE checker, not the whole engine
     name: str; domain: str                # "math.symbolic" | "physics.units" | …
     def applies_to(self, claim: Claim) -> bool: ...
     def check(self, claim: Claim) -> Verdict: ...   # pure, timeout-bounded
-    # Verdict: {status: PASS|FAIL|INAPPLICABLE|TIMEOUT, confidence,
-    #           detail, checker: "sympy@1.13"}
+    # Verdict as SHIPPED in verify/base.py (P1 field names kept — A.0
+    # correction 1, §7): {outcome: PASS|FAIL|INAPPLICABLE|TIMEOUT,
+    #                     reason, confidence, checker: "sympy@1.13"}
 ```
 
 Four rules that make these contracts load-bearing rather than decorative:
@@ -413,9 +423,25 @@ engine dispatches over a registry:
 | Logic / proofs | SAT/SMT (Z3) | research |
 
 Engine contract: run all `applies_to` checkers, each timeout-bounded in a
-process pool (SymPy can hang — P5.0), aggregate to a single gate outcome
-where **any FAIL ⇒ FAIL** and **all INAPPLICABLE ⇒ INAPPLICABLE** (never a
-pass). Verdicts fan out to three places: the SSE `verify` event, `traces.verify`
+process pool (SymPy can hang — P5.0), aggregate to a single gate outcome by this
+precedence (**shipped in A.0**, `verify/registry.py`, pinned by a truth-table
+test):
+
+> **FAIL > TIMEOUT > PASS > INAPPLICABLE**
+>
+> - any **FAIL** ⇒ FAIL — one proof of wrongness outranks any number of passes.
+> - else any **TIMEOUT** ⇒ TIMEOUT — something checkable went unchecked, so we
+>   do not know. Ranking TIMEOUT *above* PASS is what stops "3 passed, 1 timed
+>   out" from badging as verified. Abstain, don't badge.
+> - else any **PASS** ⇒ PASS.
+> - else **INAPPLICABLE** — including the no-checker-applied case. Never a PASS
+>   (edge #4): an unchecked claim and a verified claim must never be
+>   indistinguishable downstream.
+>
+> A checker that *raises* degrades to INAPPLICABLE and is logged loudly — never
+> to FAIL. A bug in our code must not surface to a student as "you are wrong".
+
+Verdicts fan out to three places: the SSE `verify` event, `traces.verify`
 (ask path), and `attempts.verify` + `error_class` (practice path — the edge
 §3.1 now draws). Keep `verify/` import-clean of tutor code so the
 verifier-API pivot ([[Opus-Execution-Plan]] §Parallel track) stays available.
@@ -529,25 +555,58 @@ our log.
 > no routes, no behavior change.** It cannot break `/v1/ask` because it does
 > not touch it — same discipline as P1's "zero behavior change" refactor.
 
-### A.0 scope (~1 day, ₹0, one PR)
+### A.0 scope (~1 day, ₹0, one PR) — ✅ **SHIPPED** (2026-07-16, PR #8)
 
-**Ships:**
+**Shipped** (as built; two corrections to the original spec are marked 🔧 and
+explained below):
 ```
 backend/app/adaptive/__init__.py
-backend/app/adaptive/contracts.py      # §3.3a verbatim: KnowledgeState,
-                                       # KCMastery, AttemptEvent, StateDelta,
-                                       # NextRequest, NextDecision + Protocols
-backend/app/verify/contracts.py        # Claim, Verdict(PASS|FAIL|INAPPLICABLE
-                                       # |TIMEOUT), Verifier Protocol
+backend/app/adaptive/contracts.py      # §3.3a: KnowledgeState, KCMastery,
+                                       # AttemptEvent, StateDelta, NextRequest,
+                                       # NextDecision + StateEstimator/Policy
+backend/app/verify/base.py             # 🔧 WIDENED IN PLACE (not a new
+                                       # contracts.py): +Outcome.TIMEOUT,
+                                       # +Verdict.checker, +Claim, and
+                                       # name/domain/applies_to on Verifier
 backend/app/verify/registry.py         # dispatch: applies_to → check →
-                                       # aggregate (any FAIL ⇒ FAIL;
-                                       # all INAPPLICABLE ⇒ INAPPLICABLE)
+                                       # aggregate (FAIL > TIMEOUT > PASS >
+                                       # INAPPLICABLE)
+backend/app/verify/checkers/__init__.py
 backend/app/verify/checkers/gold.py    # GoldAnswerChecker — the first real
                                        # verifier: compare a response to
                                        # answer_gold {value, unit, choices}
-backend/tests/test_adaptive_contracts.py
-backend/tests/test_verify_registry.py
+backend/tests/test_adaptive_contracts.py   # 38 tests
+backend/tests/test_verify_registry.py      # 39 tests
 ```
+
+> **Both corrections below, and the other load-bearing "why is this weird?"
+> calls from A.0, are recorded as one-screen ADRs in
+> [`docs/Decisions/`](../Decisions/README.md) — read those before changing any
+> of it. Correction 1 = [[ADR-001]], correction 2 = [[ADR-002]], the unit
+> limitation = [[ADR-009]].**
+
+**🔧 Correction 1 — `verify/base.py`, not `verify/contracts.py`.** This spec was
+written without noticing that **P1 already shipped `verify/base.py`** carrying
+`Outcome`/`Verdict`/`Verifier` (its docstring calls the `confidence` decision
+"locked here", and `test_model_plane.py` asserts on it). Creating a second
+`Verdict` would have put two competing contract types in one package — the exact
+failure §3.3a exists to prevent. Resolution (user call, 2026-07-16): **widen
+`base.py` in place, additively**, keeping P1's field names (`outcome`/`reason`,
+*not* the `status`/`detail` this doc originally sketched). The P1 test passes
+untouched. Anywhere this doc says `verify/contracts.py`, read `verify/base.py`.
+
+**🔧 Correction 2 — `observe(ev, prior)`, not `observe(ev)`.** §3.3a's sketch
+had `observe(self, ev: AttemptEvent) -> StateDelta` *and* required the method be
+pure. Those are contradictory: an Elo update needs the current rating, and a
+pure function cannot fetch it. Resolution: the caller — which already holds the
+row it is about to update — passes `prior: KCMastery | None` in (`None` = cold
+start). Purity rule preserved, which is what B.1's replay and Phase C's backfill
+depend on. §3.3a above reflects the corrected signature.
+
+**Also settled in A.0:** units in the gold checker are a **normalized string
+compare**, not dimensional analysis, because A.0 adds no dependencies. `m/s^2`
+== `M/S^2 `, but `N/kg` != `m/s^2` — a known false negative, pinned by a test
+that is *meant* to fail (and be deleted) when `pint` lands at P5.0.
 
 **Explicitly NOT in A.0** (each is its own PR): migrations, `EloEstimator`,
 policy, routes, UI, sympy/pint deps.
@@ -579,7 +638,7 @@ prove the dispatch against — a Protocol with no implementor is a guess.
 | PR | Contents | Gate |
 |---|---|---|
 | **A.0** | contracts + registry + gold checker (above) | none — start now |
-| **A.1** | migrations A.1–A.4 in `schema.sql` + a `docs/Build/` KC-tagging guide; RLS mirroring `sessions` | A.0 merged |
+| **A.1** | migrations A.1–A.4 as **one immutable file** in `supabase/migrations/` ([[ADR-011]] — *not* appended to `schema.sql`, which is now a pointer) + a `docs/Build/` KC-tagging guide; RLS mirroring `sessions`; verified with a local `supabase db reset` | A.0 merged **+ the live-ledger reconciliation in `supabase/README.md`** (infra account; `db push` is unsafe until then) |
 | **A.2** | KC graph seed for ONE chapter (~50 KCs + prereq edges) as a reviewable YAML/CSV → ingest CLI (`app/ingest/` already exists) | A.1 |
 | **A.3** | item-bank ingest: `items` rows w/ `answer_gold`; **tag the P3 golden problems with `kc_id`** (curate once, use twice) | A.2 + item sourcing owner assigned |
 | **B.1** | `EloEstimator` implementing `StateEstimator`; `rebuild()` replay from `attempts`; unit tests vs a hand-computed Elo trace | A.1 |
@@ -598,7 +657,9 @@ so start now and assign in parallel.
 problems become the first items for free.
 
 ## Connections
-- Extends → [[Student-Model]] (resolves its v1-mastery decision: Elo) ·
+- Decisions → [`docs/Decisions/`](../Decisions/README.md) (ADR-001…010 — the
+  "why is this weird?" records; write one when a future reader would ask)
+- Extends → [[Student-Model]] (resolves its v1-mastery decision: Elo, [[ADR-007]]) ·
   Plugs into → [[Opus-Execution-Plan]] (P1 seams, P3 golden set, P5 verifier)
 - Economics guard → [[Viability-Brutal-Honesty]] §3.1 · Moat logic →
   [[Durable-Moat]] · Verifier spec → [[Verification-Engine]]
