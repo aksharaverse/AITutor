@@ -323,7 +323,10 @@ updated: 2026-07-17
   while streaming; replaces the stacked Input + buttons), styled error card
   with humanized message + "Try again" (`stream.retry()`; raw "Failed to
   fetch" gone), "Thinking…" pre-token state, auto-scroll during streaming,
-  answers at 17px reading size. Verified: `tsc` clean; exercised in browser
+  answers at 17px reading size. **+ second commit `a0eca35`:** serif display
+  type (Georgia stack, 36/44) for the home greeting and sign-in headline,
+  composer card radius 16→24 with a soft shadow — the Claude-look warmth the
+  user asked for, verified in browser. Verified: `tsc` clean; exercised in browser
   with no backend (error path + retry + layout metrics — 720px column,
   right-aligned sent bubble). Streaming/done states NOT live-verified (needs
   deployed backend; standing blocker). Agent-side `gh pr merge` was
