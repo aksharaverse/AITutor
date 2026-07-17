@@ -26,7 +26,7 @@ from pathlib import Path
 import asyncpg
 
 from app.config import settings
-from app.ingest.item_spec import ItemError, coverage, lint, load
+from app.ingest.item_spec import LADDER_FLOOR, ItemError, coverage, lint, load
 from app.ingest.kc_graph import GraphError
 from app.ingest.kc_graph import load as load_kc
 
@@ -118,10 +118,29 @@ def main(argv=None) -> int:
     print(f"{items.chapter}  ({items.subject})")
     print("Item bank")
     print(f"  Items:                 {cov['items']}")
-    print(f"  KCs covered:           {cov['kcs_covered']} / {cov['kcs_total']}")
+    # Coverage and the median are the informative pair; the raw item count only
+    # flatters. 300 items over 10 KCs is a question bank, and only the median
+    # makes that visible.
+    print(f"  KC coverage:           {cov['kcs_covered']} / {cov['kcs_total']}"
+          f"  ({cov['coverage_pct']}%)")
+    print(f"  Median items / KC:     {cov['median_per_kc']}   (target {LADDER_FLOOR}+)")
     print(f"  KCs with no items:     {len(cov['kcs_uncovered'])}")
-    print(f"  KCs with <5 items:     {len(cov['thin'])}   "
-          f"(a KC below ~5 has no difficulty ladder to adapt over)")
+    print(f"  KCs below the floor:   {len(cov['below_floor'])}   "
+          f"(<{LADDER_FLOOR} items = servable, not adaptable)")
+
+    if cov["ahead_of_floor"]:
+        # Breadth before depth: a 6th item on one KC buys the policy nothing
+        # while other KCs are still unreachable.
+        print(f"\nNOTE: {len(cov['ahead_of_floor'])} KC(s) are past {LADDER_FLOOR} items "
+              f"while {len(cov['below_floor'])} are still below it:")
+        for kc in cov["ahead_of_floor"][:5]:
+            print(f"    {cov['per_kc'][kc]:>2} items   {kc}")
+        print("  Breadth before depth — finish the floor first.")
+
+    if cov["next_up"]:
+        print("\nNext up (emptiest first):")
+        for kc in cov["next_up"]:
+            print(f"    {cov['per_kc'][kc]:>2} items   {kc}")
 
     if args.check:
         print("\nOK: valid (--check: nothing written)")
