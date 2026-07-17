@@ -1,7 +1,7 @@
 ---
 tags: [type/architecture, domain/startup, startup/architecture, decision/anchor]
 updated: 2026-07-16
-status: ACTIVE — A.0 + A.1 shipped 2026-07-16; next step is A.2 (seed one chapter)
+status: ACTIVE — A.0/A.1/A.2 shipped 2026-07-16; next step is A.3 (item bank — needs a human owner)
 ---
 # 🔁 Adaptive Loop — research, architecture, roadmap
 
@@ -672,7 +672,7 @@ prove the dispatch against — a Protocol with no implementor is a guess.
 |---|---|---|
 | **A.0** | contracts + registry + gold checker (above) | none — start now |
 | **A.1** ✅ | **SHIPPED** — `20260716160000_adaptive_kc_items_attempts.sql`: 6 tables (`knowledge_components`, `kc_edges`, `items`, `attempts`, `student_kc_state`, `item_state`), RLS, CHECKs, indexes; + `test_migration_hygiene.py` enforcing [[ADR-011]]. **Not yet executed against any database** — needs a `supabase db reset` / fresh-DB apply. KC-tagging guide moves to A.2 (it's a content doc, not a migration). | A.0 ✔ |
-| **A.2** | KC graph seed for ONE chapter (~50 KCs + prereq edges) as a reviewable YAML/CSV → ingest CLI (`app/ingest/` already exists) | A.1 |
+| **A.2** ✅ | **SHIPPED** — `content/kc/phy_mechanics.yaml` (57 KCs, 86 edges, longest chain 10, 1 component, 0 cycles) + `app/ingest/kc_graph.py` (pure: parse/validate/metrics/topo/dot) + `app/ingest/kc.py` (transactional upsert, `--check`, `--dot`). Validation is fatal and pre-write ([[ADR-014]]); granularity is telemetry-driven, not a target ([[ADR-013]]). | A.1 |
 | **A.3** | item-bank ingest: `items` rows w/ `answer_gold`; **tag the P3 golden problems with `kc_id`** (curate once, use twice) | A.2 + item sourcing owner assigned |
 | **B.1** | `EloEstimator` implementing `StateEstimator`; `rebuild()` replay from `attempts`; unit tests vs a hand-computed Elo trace | A.1 |
 | **B.2** | `policy.py` + `routes/practice.py` (`GET /v1/next`, `POST /v1/attempts`); logs `reason` + `policy` version | B.1 + A.3 |

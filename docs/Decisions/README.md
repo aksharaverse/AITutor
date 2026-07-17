@@ -58,6 +58,8 @@ Never delete an ADR — a reversed decision is the most useful kind.
 | [010](ADR-010-pydantic-in-adaptive-dataclasses-in-verify.md) | pydantic in the adaptive plane, dataclasses in the verify plane | accepted |
 | [011](ADR-011-migrations-are-immutable.md) | Migrations are immutable numbered files; `schema.sql` is not the source of truth | accepted (live reconciliation owed) |
 | [012](ADR-012-content-and-derived-state-are-separate-tables.md) | Authored content and derived state never share a table | accepted |
+| [013](ADR-013-telemetry-drives-kc-granularity.md) | KC granularity is set by telemetry, not by a target number | accepted |
+| [014](ADR-014-ingest-is-the-graph-integrity-boundary.md) | The ingest tool is the knowledge graph's integrity boundary | accepted |
 
 ## Connections
 - Decisions from → [[Adaptive-Loop-Architecture]] · [[Opus-Execution-Plan]]
