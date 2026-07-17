@@ -1,6 +1,6 @@
 ---
 tags: [type/status, domain/startup]
-updated: 2026-07-16
+updated: 2026-07-17
 ---
 # 🛰️ Status — cross-account orchestration board
 
@@ -316,7 +316,35 @@ updated: 2026-07-16
 
 ## UI/UX + Infra (`feat/ui-redesign`, `feat/deploy-cloudrun`)
 - **Status:** in progress — UI redesign + owns live-infra/deploy lane
-- **Last update:** 2026-07-12
+- **Last update:** 2026-07-17
+- **🆕 Done (2026-07-17) — parity gaps CLOSED in
+  [PR #13](https://github.com/aksharaverse/AITutor/pull/13) (`fix/frontend-backend-parity`,
+  off `main`, ready for review):** all three findings from the 2026-07-12
+  review in one slice —
+  1. **`GET /v1/sessions/{id}`** (backend, new + FakePool tests): the thread
+     screen paginated the list client-side (5-page cap), so sessions past ~100
+     entries showed "not found". Owner-scoped; foreign ids 404, never 403.
+  2. **`thread_id` wired through the client**: the backend accepted it since
+     P0.3 but the app never sent it — follow-ups were impossible. The stream
+     store now keeps the thread (completed exchanges + `threadId` from `meta`);
+     the live thread screen gained a follow-up composer.
+  3. **Feedback UI** (new `components/Feedback.tsx`): 👍/👎 posts to the
+     feedback endpoint nothing had ever called — the data flywheel intake was
+     dead. Optimistic, revert-on-failure, on live and past sessions.
+  Verified: backend 194/194 · `tsc` clean · Expo web bundles, renders, zero
+  console errors. **NOT verified: the live streamed follow-up flow** — needs a
+  deployed backend + authenticated user (same blocker as the P0 prove-it).
+- **🆕 PR review (2026-07-17, this account):
+  [#11](https://github.com/aksharaverse/AITutor/pull/11) and
+  [#12](https://github.com/aksharaverse/AITutor/pull/12) are GREEN — no
+  blocking findings.** Ran the stacked branch locally: **275/275 tests pass**;
+  probed the linter's edges (empty `choices: []` correctly rejected via the
+  real checker's INAPPLICABLE; `ChapterId` grammar accepts the pre-existing
+  optics string). `main` independently re-verified at 192/192. Both PRs only
+  add `ingest/`, `ids.py`, content, docs + one additive migration — no
+  routes/orchestrator touched. **Backend lane: merge when ready** (left to you
+  since they're your lane's PRs; #12 is stacked on #11, so merge #11 first,
+  then re-base-and-merge #12).
 - **Done (UI):** (carried over, not yet committed) modified `index.tsx`,
   `sign-in.tsx`, `thread/[id].tsx`, `Bubble.tsx`, `Input.tsx`, `Screen.tsx`,
   `theme.ts`; new `Branches.tsx`/`.web.tsx`, `Brand.tsx`, `Composer.tsx`,
@@ -353,17 +381,19 @@ per-lane → [[2026-07-12-review-ui-account]] (on `feat/ui-redesign`) and
 Architecture re-validated by execution: `main` 23/23 tests, seams 29/29
 in a clean worktree; Google OAuth wiring and Cloud Run deploy config
 confirmed by inspection. Summary of the findings:
-- **Frontend lags backend by a phase:** P0.3 is "done" on `main` but the app
+- **Frontend lags backend by a phase:** ~~P0.3 is "done" on `main` but the app
   never sends `thread_id` (no follow-up questions) and has **no feedback UI**
-  (👍/👎 endpoint unused → the data flywheel isn't being fed). These are the
-  two highest-leverage UI tasks after the redesign merge.
+  (👍/👎 endpoint unused → the data flywheel isn't being fed).~~ **FIXED in
+  [PR #13](https://github.com/aksharaverse/AITutor/pull/13) (2026-07-17)** —
+  threads, feedback UI, and the session-lookup endpoint, see UI lane above.
 - **Backend security gap (pre-deploy fix):** `/v1/ask` `image_url` is fetched
   server-side unvalidated in the Gemini path — SSRF on Cloud Run + no size/
   content-type cap (plan edge case #5 not yet implemented). Fix: allowlist the
   Supabase storage URL prefix, cap ~4MB, check content-type. Backend lane.
-- **Missing endpoint:** no `GET /v1/sessions/{id}` — thread screen paginates
+- **Missing endpoint:** ~~no `GET /v1/sessions/{id}` — thread screen paginates
   up to 5 pages client-side to find one session; sessions older than ~100
-  entries show "not found". Small backend add + frontend switch.
+  entries show "not found".~~ **FIXED in
+  [PR #13](https://github.com/aksharaverse/AITutor/pull/13) (2026-07-17).**
 - **Critical path unchanged:** nothing is live e2e (gcloud deploy blocked on
   human auth), corpus is empty until Physics–Optics ingest → P0 prove-it →
   P1 merge. Everything else queues behind this.
