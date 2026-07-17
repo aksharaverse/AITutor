@@ -54,9 +54,13 @@ export function Bubble({
       </View>
 
       <View>
-        <MathText style={{ ...font.body, color: t.fg }}>
-          {answer + (streaming ? " ▍" : "")}
-        </MathText>
+        {streaming && !answer ? (
+          <Text style={[font.body, { color: t.muted }]}>Thinking…</Text>
+        ) : (
+          <MathText style={{ ...font.bodyLg, color: t.fg }}>
+            {answer + (streaming ? " ▍" : "")}
+          </MathText>
+        )}
         {sources && sources.length > 0 && (
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.s, marginTop: space.m }}>
             {sources.map((s) => (

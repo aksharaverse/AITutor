@@ -38,6 +38,7 @@ export function Composer({
   onSubmit,
   busy,
   placeholder,
+  attach = true,
 }: {
   value: string;
   onChangeText: (v: string) => void;
@@ -46,6 +47,8 @@ export function Composer({
   onSubmit: () => void;
   busy?: boolean;
   placeholder?: string;
+  /** Hide the ＋ attach menu (e.g. follow-ups, which are text-only). */
+  attach?: boolean;
 }) {
   const t = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -154,7 +157,9 @@ export function Composer({
       />
 
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-        <View>
+        <View style={!attach && { width: 0, height: 32 }}>
+          {attach && (
+          <>
           <Pressable
             onPress={() => setMenuOpen((v) => !v)}
             hitSlop={8}
@@ -194,6 +199,8 @@ export function Composer({
               {menuItem("Choose photo", () => pick("library"))}
               {menuItem("Upload file", undefined, "soon")}
             </View>
+          )}
+          </>
           )}
         </View>
 
