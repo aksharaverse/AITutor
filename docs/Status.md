@@ -317,6 +317,14 @@ updated: 2026-07-19
 ## UI/UX + Infra (`feat/ui-redesign`, `feat/deploy-cloudrun`)
 - **Status:** in progress — UI redesign + owns live-infra/deploy lane
 - **Last update:** 2026-07-19
+- **🆕 (2026-07-19) Roadmap rewritten — [PR #16](https://github.com/aksharaverse/AITutor/pull/16)
+  (`docs/roadmap-2026-07`), ready for review.** Full-repo analysis found
+  `docs/Roadmap.md` frozen at 2026-06-28 (pre-Opus-plan, pre-adaptive-lane).
+  The rewrite merges P0–P5 + A–D + infra/GTM into four dependency-ordered
+  horizons and names the two **human** root blockers everything queues
+  behind: (1) gcloud auth → Cloud Run deploy → first live e2e; (2) content
+  curation hours → A.3b item bank ≥150 → B.1. Either account can review;
+  it's a nav-summary doc, detail stays in the plan docs it points to.
 - **✅ DONE (2026-07-19) — [PR #15](https://github.com/aksharaverse/AITutor/pull/15)
   MERGED (`04b73a1`) and DEPLOYED.** Workers build for the merge commit:
   success — aksharaverse.com now serves the chat-thread polish (bottom
