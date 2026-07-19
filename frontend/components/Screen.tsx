@@ -3,7 +3,7 @@
 // `dotted` swaps the flat background for the dotted canvas (sign-in only).
 
 import { router } from "expo-router";
-import React from "react";
+import React, { useRef } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -18,6 +18,8 @@ export function Screen({
   scroll = true,
   dotted = false,
   branches = false,
+  footer,
+  stickToBottom = false,
 }: {
   title?: string;
   back?: boolean;
@@ -25,9 +27,14 @@ export function Screen({
   scroll?: boolean;
   dotted?: boolean;
   branches?: boolean;
+  /** Pinned below the scroll area, same centered column (chat composer). */
+  footer?: React.ReactNode;
+  /** Keep the scroll pinned to the end as content grows (streaming chat). */
+  stickToBottom?: boolean;
 }) {
   const t = useTheme();
   const insets = useSafeAreaInsets();
+  const scrollRef = useRef<ScrollView>(null);
 
   const inner = (
     <View style={{ flex: 1, width: "100%", maxWidth: 720, padding: space.m }}>
@@ -59,11 +66,36 @@ export function Screen({
   );
 
   const body = scroll ? (
-    <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: "center" }}>
+    <ScrollView
+      ref={scrollRef}
+      style={{ flex: 1 }}
+      contentContainerStyle={{ flexGrow: 1, alignItems: "center" }}
+      onContentSizeChange={
+        stickToBottom
+          ? () => scrollRef.current?.scrollToEnd({ animated: false })
+          : undefined
+      }
+    >
       {inner}
     </ScrollView>
   ) : (
     <View style={{ flex: 1, alignItems: "center" }}>{inner}</View>
+  );
+
+  const footerBar = footer && (
+    <View style={{ width: "100%", alignItems: "center" }}>
+      <View
+        style={{
+          width: "100%",
+          maxWidth: 720,
+          paddingHorizontal: space.m,
+          paddingBottom: Math.max(space.m, insets.bottom),
+          paddingTop: space.xs,
+        }}
+      >
+        {footer}
+      </View>
+    </View>
   );
 
   if (dotted) {
@@ -71,6 +103,7 @@ export function Screen({
       <DottedBackground style={{ paddingTop: insets.top }}>
         {art}
         {body}
+        {footerBar}
       </DottedBackground>
     );
   }
@@ -78,6 +111,7 @@ export function Screen({
     <View style={{ flex: 1, backgroundColor: t.bg, paddingTop: insets.top }}>
       {art}
       {body}
+      {footerBar}
     </View>
   );
 }

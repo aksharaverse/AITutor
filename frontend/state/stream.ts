@@ -33,11 +33,18 @@ type StreamState = {
   error: string | null;
   ask: (q: { text?: string; image_url?: string; chapter?: string }) => void;
   followUp: (text: string) => void;
+  /** Re-send the request that just failed (status must be "error"). */
+  retry: () => void;
   reset: () => void;
 };
 
+type StartReq = { text?: string; image_url?: string; chapter?: string; thread_id?: string };
+
 export const useStream = create<StreamState>((set, get) => {
-  const start = (q: { text?: string; image_url?: string; chapter?: string; thread_id?: string }) => {
+  let lastRequest: StartReq | null = null;
+
+  const start = (q: StartReq) => {
+    lastRequest = q;
     set({
       question: q.text ?? "(photo question)",
       imageUrl: q.image_url ?? null,
@@ -92,6 +99,10 @@ export const useStream = create<StreamState>((set, get) => {
         ],
       });
       start({ text: text.trim(), thread_id: s.threadId ?? undefined });
+    },
+
+    retry: () => {
+      if (get().status === "error" && lastRequest) start(lastRequest);
     },
 
     reset: () =>
