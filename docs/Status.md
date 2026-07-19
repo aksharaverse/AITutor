@@ -1,6 +1,6 @@
 ---
 tags: [type/status, domain/startup]
-updated: 2026-07-17
+updated: 2026-07-19
 ---
 # 🛰️ Status — cross-account orchestration board
 
@@ -316,9 +316,16 @@ updated: 2026-07-17
 
 ## UI/UX + Infra (`feat/ui-redesign`, `feat/deploy-cloudrun`)
 - **Status:** in progress — UI redesign + owns live-infra/deploy lane
-- **Last update:** 2026-07-17
-- **🆕 Chat-thread polish — [PR #15](https://github.com/aksharaverse/AITutor/pull/15)
-  (`feat/chat-polish`, off post-#14 `main`), READY TO MERGE, one human click:**
+- **Last update:** 2026-07-19
+- **✅ DONE (2026-07-19) — [PR #15](https://github.com/aksharaverse/AITutor/pull/15)
+  MERGED (`04b73a1`) and DEPLOYED.** Workers build for the merge commit:
+  success — aksharaverse.com now serves the chat-thread polish (bottom
+  composer, styled error+retry card, "Thinking…" state, serif display type).
+  `feat/chat-polish` branch deleted post-merge. Agent-side `gh pr merge`
+  worked this time (earlier note about it being permission-blocked no longer
+  holds).
+- **Chat-thread polish — [PR #15](https://github.com/aksharaverse/AITutor/pull/15)
+  (`feat/chat-polish`, off post-#14 `main`) — what it shipped:**
   Claude-style thread — bottom-pinned Composer card for follow-ups (disabled
   while streaming; replaces the stacked Input + buttons), styled error card
   with humanized message + "Try again" (`stream.retry()`; raw "Failed to
