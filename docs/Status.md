@@ -317,6 +317,19 @@ updated: 2026-07-19
 ## UI/UX + Infra (`feat/ui-redesign`, `feat/deploy-cloudrun`)
 - **Status:** in progress — UI redesign + owns live-infra/deploy lane
 - **Last update:** 2026-07-19
+- **🆕 (2026-07-19) Deploy runbook — [PR #18](https://github.com/aksharaverse/AITutor/pull/18)
+  (`docs/deploy-runbook`).** `docs/Deploy-Runbook.md`: a self-contained,
+  copy-paste ₹0 Cloud Run deploy so the human half of Horizon 1 is just
+  paste-and-go — two-project split (Gemini key w/ no billing + budget
+  kill-switch on the Run project), `us-central1`, `--max-instances 1`,
+  `GEMINI_MODEL=flash`, 5 secrets, the exact `gcloud run deploy` line, wiring
+  `EXPO_PUBLIC_API_URL` into the Workers build, UptimeRobot pinger, the P0
+  prove-it, rollback. **Code-verified caveat both lanes should know:** skipping
+  `DEEPSEEK_API_KEY` works *only via failover* — `router.py` still tries
+  DeepSeek first, 401s on the empty key, fails over to Gemini Flash before the
+  first token, costing ~200–400 ms/text question. Clean fix = one-line router
+  change (text→Gemini when no DeepSeek key); flagged for P4, out of scope for
+  the deploy. `cloudrun.sh` stays the paid-tier/pilot variant.
 - **🆕🟢 (2026-07-19) CI EXISTS — [PR #17](https://github.com/aksharaverse/AITutor/pull/17)
   (`feat/ci`), ALL THREE JOBS GREEN on its first run.** `.github/workflows/ci.yml`:
   backend pytest (194) · **fresh-DB migration apply** (pgvector:pg16 + the
