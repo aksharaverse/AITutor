@@ -337,6 +337,64 @@ def test_coverage_counts_and_flags_thin_kcs():
     assert "phy.mech.torque" in cov["kcs_uncovered"]
 
 
+def test_coverage_reports_percentage_and_median_not_just_a_total():
+    # The pair that stops a raw item count from flattering: "12 items" sounds
+    # like progress; 2/57 covered with a median of 0 is the truth.
+    items = [_item(slug=f"phy.mech.free_fall.q{i:03d}", kc="phy.mech.free_fall",
+                   stem=f"Q{i}") for i in range(6)]
+    items += [_item(slug=f"phy.mech.torque.q{i:03d}", kc="phy.mech.torque",
+                    stem=f"T{i}") for i in range(6)]
+    cov = coverage(_set(items), KC_IDS)
+    assert cov["items"] == 12
+    assert cov["kcs_covered"] == 2
+    assert cov["coverage_pct"] == round(100 * 2 / 57, 1)
+    assert cov["median_per_kc"] == 0        # 55 of 57 KCs still have nothing
+
+
+def test_median_rises_only_when_the_bank_is_broad():
+    # A median at the floor means MOST KCs are adaptable — the real readiness
+    # signal for B.2, and no amount of depth on a few KCs can fake it.
+    kcs = {f"a.kc{i}" for i in range(5)}
+    items = [_item(slug=f"a.kc{i}.q{j:03d}", kc=f"a.kc{i}", stem=f"{i}-{j}")
+             for i in range(5) for j in range(5)]
+    cov = coverage(_set(items), kcs)
+    assert cov["median_per_kc"] == 5
+    assert cov["coverage_pct"] == 100.0
+    assert cov["below_floor"] == []
+
+
+def test_breadth_first_violation_is_reported():
+    # 8 items on one KC while 56 have none: items 6-8 buy the policy nothing
+    # until the rest of the graph is reachable at all.
+    items = [_item(slug=f"phy.mech.free_fall.q{i:03d}", kc="phy.mech.free_fall",
+                   stem=f"Q{i}") for i in range(8)]
+    cov = coverage(_set(items), KC_IDS)
+    assert cov["ahead_of_floor"] == ["phy.mech.free_fall"]
+    assert len(cov["below_floor"]) == 56
+
+
+def test_nothing_is_ahead_once_the_floor_is_met_everywhere():
+    kcs = {f"a.kc{i}" for i in range(3)}
+    items = [_item(slug=f"a.kc{i}.q{j:03d}", kc=f"a.kc{i}", stem=f"{i}-{j}")
+             for i in range(3) for j in range(6)]
+    cov = coverage(_set(items), kcs)
+    # Floor met, so depth stops being a violation and becomes just work.
+    assert cov["below_floor"] == [] and cov["ahead_of_floor"] == []
+
+
+def test_next_up_is_emptiest_first_and_deterministic():
+    items = [_item(slug="phy.mech.free_fall.q001", kc="phy.mech.free_fall")]
+    cov = coverage(_set(items), KC_IDS)
+    assert all(cov["per_kc"][k] == 0 for k in cov["next_up"]), "empty KCs first"
+    assert cov["next_up"] == coverage(_set(items), KC_IDS)["next_up"]       # stable
+    # Ties break by id so two curators reading the list don't pick the same KC.
+    assert cov["next_up"] == sorted(cov["next_up"])
+
+
+def test_coverage_of_an_empty_graph_does_not_divide_by_zero():
+    assert coverage(_set([]), set())["coverage_pct"] == 0.0
+
+
 # ---------------------------------------------------------------------------
 # the real seed
 # ---------------------------------------------------------------------------
@@ -366,7 +424,11 @@ def test_cli_check_passes_on_the_seed(capsys):
     from app.ingest.items import main
     assert main([str(ITEMS), "--kc", str(KC), "--check"]) == 0
     out = capsys.readouterr().out
-    assert "Items:" in out and "KCs covered:" in out and "nothing written" in out
+    assert "Items:" in out and "nothing written" in out
+    # The informative pair, not just the flattering total.
+    assert "KC coverage:" in out and "%" in out
+    assert "Median items / KC:" in out
+    assert "Next up" in out                 # tells a curator what to do next
 
 
 def test_cli_check_fails_with_exit_1_on_a_bad_item(tmp_path, capsys):

@@ -1,7 +1,7 @@
 ---
 tags: [type/architecture, domain/startup, startup/architecture, decision/anchor]
 updated: 2026-07-16
-status: ACTIVE — A.0–A.3(1-3) shipped; A.3 step 4 = curate ~300 items (HUMAN BLOCKER), then B.1
+status: ACTIVE — A.0–A.3a shipped (static infra + content pipeline). A.3b = curate ~300 items (HUMAN BLOCKER), then B.1 exercises the dynamic infra
 ---
 # 🔁 Adaptive Loop — research, architecture, roadmap
 
@@ -521,6 +521,37 @@ gated bets that cost nothing until their gates open. **Do not block the
 product on JEPA** — the loop must work (and retain students) on Elo alone; if
 it doesn't, no model fixes it (the Khanmigo lesson: engagement > cleverness).
 
+**What "A is done" does and does not mean (review 2026-07-17 — an earlier
+version of this doc overstated it).** Phase A completed the **static**
+infrastructure: contracts, persistence, the domain model, the content pipeline.
+The **dynamic** infrastructure is entirely unexercised — Elo updates, `rebuild()`
+replay, the policy, `/v1/next`, event generation. Every one of those will surface
+another round of refinements, exactly as A.1/A.2/A.3 each did (the `p_correct`
+column, the chapter-string contract, the cp1252 crash, `slug` vs
+`content_hash` — none of which were visible on paper). What is finished is the
+foundation those depend on, not the engine.
+
+**Where the risk now lives.** Through A.2 the top risks were architectural. They
+are now operational, and they are not the same problem:
+1. **Content throughput** — can we sustainably produce high-quality tagged items?
+   (A.3a is the answer to this one: the process, not the dataset.)
+2. **Content quality** — are the KC assignments and gold answers actually right?
+   A confidently wrong gold is the worst bug in the system: the student is
+   correct, is marked wrong, and Elo learns the opposite of the truth from every
+   subsequent attempt. The linter cannot catch it; only human review can, which
+   is why [[Content-Authoring]] §8 exists.
+3. **Telemetry quality** — once students arrive, are we logging everything replay
+   and Phase C need? Unlogged is unrecoverable; this is the one that can't be
+   fixed retroactively.
+
+**Corollary for engineering:** from here, an abstraction earns its place only by
+solving a problem hit during Elo, policy execution, or curation — not by
+anticipated future complexity. (Applied already: `KCId`/`ItemSlug`/`StudentId`
+were proposed as domain types and *declined* — `ChapterId` earned it because two
+writers joined by exact string equality with no FK had already drifted; `kc_id`
+has an FK and `slug` has a unique constraint plus a linter. No forcing function,
+no type. Revisit when one appears.)
+
 **Suggested lane split:** backend account — migrations + `adaptive/` +
 `practice.py` (Phase A–B server side); UI account — practice screen + the
 still-missing feedback UI (same screen, two birds). Phase C is a research
@@ -673,7 +704,7 @@ prove the dispatch against — a Protocol with no implementor is a guess.
 | **A.0** | contracts + registry + gold checker (above) | none — start now |
 | **A.1** ✅ | **SHIPPED** — `20260716160000_adaptive_kc_items_attempts.sql`: 6 tables (`knowledge_components`, `kc_edges`, `items`, `attempts`, `student_kc_state`, `item_state`), RLS, CHECKs, indexes; + `test_migration_hygiene.py` enforcing [[ADR-011]]. **Not yet executed against any database** — needs a `supabase db reset` / fresh-DB apply. KC-tagging guide moves to A.2 (it's a content doc, not a migration). | A.0 ✔ |
 | **A.2** ✅ | **SHIPPED** — `content/kc/phy_mechanics.yaml` (57 KCs, 86 edges, longest chain 10, 1 component, 0 cycles) + `app/ingest/kc_graph.py` (pure: parse/validate/metrics/topo/dot) + `app/ingest/kc.py` (transactional upsert, `--check`, `--dot`). Validation is fatal and pre-write ([[ADR-014]]); granularity is telemetry-driven, not a target ([[ADR-013]]). | A.1 |
-| **A.3** — *reprioritised from "item sourcing" to **content pipeline***. Steps 1–3 are engineering and are **SHIPPED**; step 4 is the human blocker. <br>1. ✅ item schema (`content/items/*.yaml`) + `items.slug` migration ([[ADR-015]]) <br>2. ✅ linter (`app/ingest/item_spec.py`) — content is code; **bad content fails CI like bad Python** <br>3. ✅ importer (`app/ingest/items.py`) — transactional, idempotent, `--check` needs no DB <br>4. ⬜ **curate ~300 items — needs a human owner** <br>5. ⬜ *then* B.1 (Elo) | A.2 ✔ |
+| **A.3** — *reprioritised from "item sourcing" to **content pipeline***, then split again (review 2026-07-17) so the *process* ships independently of the *first dataset*: <br>1. ✅ item schema (`content/items/*.yaml`) + `items.slug` migration ([[ADR-015]]) <br>2. ✅ linter (`app/ingest/item_spec.py`) — content is code; **bad content fails like bad Python** <br>3. ✅ importer (`app/ingest/items.py`) — transactional, idempotent, `--check` needs no DB <br>**A.3a** ✅ content operations — [[Content-Authoring]] (guide + tagging + gold conventions + review checklist + batch workflow), coverage/median/breadth-first dashboard. *Deliverable: a contributor who has never seen the project can add ten valid items.* Guide examples are executed by tests, so it can't rot into a lie. <br>**A.3b** ⬜ **first corpus — ~300 items. NEEDS A HUMAN OWNER.** Breadth before depth: every KC to 5 before any gets a 6th. | A.2 ✔ |
 | **B.1** | `EloEstimator` implementing `StateEstimator`; `rebuild()` replay from `attempts`; unit tests vs a hand-computed Elo trace | A.1 |
 | **B.2** | `policy.py` + `routes/practice.py` (`GET /v1/next`, `POST /v1/attempts`); logs `reason` + `policy` version | B.1 + A.3 |
 | **B.3** | UI practice screen + the still-missing feedback UI (UI lane) | B.2 |

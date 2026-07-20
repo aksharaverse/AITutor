@@ -37,6 +37,7 @@ import json
 import re
 import uuid
 from dataclasses import dataclass
+from statistics import median
 
 import yaml
 
@@ -291,23 +292,47 @@ def lint(items: ItemSet, kc_ids: set[str], kc_chapter: str | None = None) -> Non
         raise ItemError("Lint failed.\n\n" + "\n".join(f"  - {p}" for p in problems))
 
 
-def coverage(items: ItemSet, kc_ids: set[str]) -> dict:
-    """Per-KC item counts + the KCs with none. Not a lint failure — a report.
+# Items per KC below which the policy can *serve* but not *adapt*: with fewer
+# than this there is no difficulty ladder to select from, so "pick the item whose
+# rating gives p≈0.7" degrades into "pick the only item there is". A curation
+# target, never a lint rule ([[ADR-016]]: coverage is reported, not enforced).
+LADDER_FLOOR = 5
 
-    An adaptive loop needs a difficulty ladder per KC (~5-6 items); a KC with one
-    item cannot adapt, it can only serve. This is the number that says whether
-    the bank is ready for B.2, and it is the one worth watching during curation.
+
+def coverage(items: ItemSet, kc_ids: set[str]) -> dict:
+    """The curation dashboard. A report, never a lint failure.
+
+    Total item count is the number that flatters; these are the ones that inform.
+    `coverage_pct` and `median_per_kc` say whether the bank can *adapt* rather
+    than merely exist — 300 items spread over 10 KCs is a question bank, not an
+    adaptive corpus, and only the median makes that visible.
     """
     counts: dict[str, int] = {k: 0 for k in kc_ids}
     for item in items.items:
         if item.kc in counts:
             counts[item.kc] += 1
-    covered = {k: n for k, n in counts.items() if n}
+
+    total = len(counts)
+    covered = sorted(k for k, n in counts.items() if n)
+    below = sorted(k for k, n in counts.items() if n < LADDER_FLOOR)
+
+    # Breadth-first: nothing gets a 6th item while any KC is short of the floor.
+    # Depth on one KC buys the policy nothing until the graph is walkable — an
+    # unreachable KC's ladder never gets climbed.
+    ahead = sorted(k for k, n in counts.items() if n > LADDER_FLOOR) if below else []
+
     return {
         "items": len(items.items),
-        "kcs_total": len(kc_ids),
+        "kcs_total": total,
         "kcs_covered": len(covered),
+        "coverage_pct": round(100.0 * len(covered) / total, 1) if total else 0.0,
+        "median_per_kc": int(median(counts.values())) if counts else 0,
         "kcs_uncovered": sorted(k for k, n in counts.items() if n == 0),
         "per_kc": counts,
-        "thin": sorted(k for k, n in counts.items() if 0 < n < 5),
+        "thin": sorted(k for k, n in counts.items() if 0 < n < LADDER_FLOOR),
+        "below_floor": below,
+        "ahead_of_floor": ahead,
+        # What to author next, breadth-first: emptiest first, ties broken by id so
+        # two curators reading this list don't collide on the same KC.
+        "next_up": sorted(below, key=lambda k: (counts[k], k))[:10],
     }
