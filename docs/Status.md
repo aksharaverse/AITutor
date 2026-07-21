@@ -1,6 +1,6 @@
 ---
 tags: [type/status, domain/startup]
-updated: 2026-07-19
+updated: 2026-07-21
 ---
 # 🛰️ Status — cross-account orchestration board
 
@@ -259,6 +259,25 @@ updated: 2026-07-19
   linter catches it — only human review ([[Content-Authoring]] §8);
   (3) **telemetry quality** — unlogged is unrecoverable, so this is the one that
   can't be fixed retroactively. Architecture is no longer the bottleneck.
+- **🔴 Contract ↔ schema mismatches (2026-07-21, found by inspection, verified
+  against `main` post-#17/#18).** Three places where `adaptive/contracts.py`'s
+  stated persistence requirements have no backing column/table:
+  1. **Decision persistence.** `NextDecision.reason`, `.policy`, and
+     `.alternatives` are documented as required for off-policy evaluation
+     (contracts.py rule 3: "without them no off-policy evaluation is possible
+     later"). No table currently stores a served decision — not `attempts`,
+     not `student_kc_state`, not `item_state`.
+  2. **Calibration persistence.** `StateDelta.p_correct_expected` is
+     documented as "the only way to measure calibration after the fact...
+     without re-running history through the old model" (same rule). `attempts`
+     (`supabase/migrations/20260716160000_adaptive_kc_items_attempts.sql`) has
+     no column for it.
+  3. **Adaptive ↔ retrieval linkage.** `traces` is keyed on `session_id`;
+     `attempts` has no `session_id` column. The two tables cannot currently be
+     joined, so an attempt cannot be directly associated with the
+     retrieval/explanation trace that preceded it.
+  Recorded as schema state, not a recommendation — whoever schemas B.1/B.2
+  decides what to do with it.
 - **New bar for engineering:** an abstraction earns its place only by solving a
   problem hit during Elo, policy execution, or curation — not by anticipated
   complexity. (Already applied: `KCId`/`ItemSlug`/`StudentId` domain types were
